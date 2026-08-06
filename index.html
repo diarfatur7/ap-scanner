@@ -1,286 +1,458 @@
-/*******************************************************
- AP SCANNER
- Backend Apps Script
- Version 1.0
-*******************************************************/
+<!DOCTYPE html>
+<html lang="id">
 
-const SHEET_NAME = "SCAN_AP";
+<head>
 
-// GANTI DENGAN API KEY GOOGLE VISION
-const API_KEY =
-"MASUKKAN_API_KEY_DISINI";
+<meta charset="UTF-8">
 
-/*******************************************************
- POST REQUEST DARI GITHUB
-*******************************************************/
-function doPost(e) {
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0">
 
-  try {
+<title>AP Scanner</title>
 
-    const body =
-      JSON.parse(e.postData.contents);
+<style>
 
-    if (!body.image) {
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial,sans-serif;
+}
 
-      return jsonResponse({
-        success: false,
-        message: "Image kosong"
-      });
+body{
 
-    }
-
-    const nomor =
-      scanVision(body.image);
-
-    if (!nomor) {
-
-      return jsonResponse({
-        success: false,
-        message: "Nomor AP tidak ditemukan"
-      });
-
-    }
-
-    const result =
-      saveDocument(nomor);
-
-    return jsonResponse({
-
-      success: true,
-
-      nomor: nomor,
-
-      message: result
-
-    });
-
-  } catch (err) {
-
-    return jsonResponse({
-
-      success: false,
-
-      message: err.toString()
-
-    });
-
-  }
+background:#0f172a;
+color:white;
 
 }
 
-/*******************************************************
- GOOGLE VISION OCR
-*******************************************************/
-function scanVision(base64) {
+header{
 
-  const url =
-    "https://vision.googleapis.com/v1/images:annotate?key=" + API_KEY;
-
-  const payload = {
-    requests: [
-      {
-        image: {
-          content: base64
-        },
-        features: [
-          {
-            type: "DOCUMENT_TEXT_DETECTION"
-          }
-        ]
-      }
-    ]
-  };
-
-  const options = {
-    method: "post",
-    contentType: "application/json",
-    payload: JSON.stringify(payload),
-    muteHttpExceptions: true
-  };
-
-  const response = UrlFetchApp.fetch(url, options);
-
-  const json = JSON.parse(response.getContentText());
-
-  Logger.log(response.getContentText());
-
-  // Jika Vision API mengembalikan error
-  if (json.error) {
-    throw new Error(json.error.message);
-  }
-
-  if (
-    !json.responses ||
-    !json.responses[0] ||
-    !json.responses[0].fullTextAnnotation
-  ) {
-    return null;
-  }
-
-  const text =
-    json.responses[0]
-      .fullTextAnnotation
-      .text;
-
-  Logger.log(text);
-
-  // Cari nomor AP yang diawali 92 dan total 10 digit
-  const match = text.match(/\b92\d{8}\b/);
-
-  if (match) {
-    return match[0];
-  }
-
-  return null;
+background:#2563eb;
+padding:18px;
+text-align:center;
+font-size:28px;
+font-weight:bold;
 
 }
 
-/*******************************************************
- SIMPAN KE GOOGLE SHEET
-*******************************************************/
-function saveDocument(noAP) {
+video{
 
-  const sheet = SpreadsheetApp
-    .getActiveSpreadsheet()
-    .getSheetByName(SHEET_NAME);
+width:100%;
+height:65vh;
+background:black;
+object-fit:cover;
 
-  if (!sheet) {
-    throw new Error("Sheet SCAN_AP tidak ditemukan");
-  }
+}
 
-  const lastRow = sheet.getLastRow();
+.container{
 
-  // Cek duplikat
-  if (lastRow > 1) {
+padding:20px;
 
-    const nomorList = sheet
-      .getRange(2, 2, lastRow - 1, 1)
-      .getValues();
+}
 
-    for (let i = 0; i < nomorList.length; i++) {
+button{
 
-      if (String(nomorList[i][0]).trim() === String(noAP).trim()) {
+width:100%;
+padding:18px;
+font-size:22px;
+border:none;
+border-radius:10px;
+background:#2563eb;
+color:white;
+cursor:pointer;
 
-        return "Nomor sudah pernah discan";
+}
 
-      }
+button:disabled{
+
+opacity:.6;
+
+}
+
+.card{
+
+margin-top:20px;
+background:#1e293b;
+padding:20px;
+border-radius:10px;
+
+}
+
+.label{
+
+font-size:14px;
+color:#94a3b8;
+
+}
+
+#hasil{
+
+margin-top:10px;
+font-size:32px;
+font-weight:bold;
+color:#22c55e;
+word-break:break-all;
+
+}
+
+#status{
+
+margin-top:15px;
+font-size:16px;
+color:#facc15;
+
+}
+
+.loading{
+
+display:none;
+margin-top:20px;
+text-align:center;
+
+}
+
+.spinner{
+
+width:45px;
+height:45px;
+border:5px solid #334155;
+border-top:5px solid #3b82f6;
+border-radius:50%;
+margin:auto;
+animation:spin 1s linear infinite;
+
+}
+
+@keyframes spin{
+
+100%{
+
+transform:rotate(360deg);
+
+}
+
+}
+
+footer{
+
+margin-top:25px;
+text-align:center;
+font-size:13px;
+color:#94a3b8;
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<header>
+
+📷 AP Scanner
+
+</header>
+
+<video
+id="video"
+autoplay
+playsinline
+muted>
+</video>
+
+<div class="container">
+
+<button
+id="scanBtn"
+onclick="scan()">
+
+📷 SCAN DOKUMEN
+
+</button>
+
+<div class="card">
+
+<div class="label">
+
+Nomor AP
+
+</div>
+
+<div id="hasil">
+
+Belum Scan
+
+</div>
+
+<div id="status">
+
+Memulai kamera...
+
+</div>
+
+<div
+class="loading"
+id="loading">
+
+<div class="spinner"></div>
+
+<div
+style="margin-top:10px">
+
+Sedang memproses OCR...
+
+</div>
+
+</div>
+
+</div>
+
+<footer>
+
+AP Scanner Version 1.0
+
+</footer>
+
+<canvas
+id="canvas"
+style="display:none">
+</canvas>
+
+<script>
+
+const WEBAPP_URL =
+"https://script.google.com/macros/s/GANTI_DENGAN_WEBAPP_URL/exec";
+
+const video =
+document.getElementById("video");
+
+const hasil =
+document.getElementById("hasil");
+
+const statusText =
+document.getElementById("status");
+
+const loading =
+document.getElementById("loading");
+
+const scanBtn =
+document.getElementById("scanBtn");
+
+window.onload = function(){
+
+    startCamera();
+
+};
+
+async function startCamera(){
+
+    if(!navigator.mediaDevices){
+
+        status("Browser tidak mendukung kamera");
+
+        return;
 
     }
 
-  }
+    try{
 
-  // Simpan ke Sheet
-  sheet.appendRow([
-    new Date(),
-    noAP,
-    "BELUM APPROVE"
-  ]);
+        const stream =
+        await navigator.mediaDevices.getUserMedia({
 
-  return "Berhasil disimpan";
+            video:{
+
+                facingMode:{
+                    ideal:"environment"
+                },
+
+                width:{
+                    ideal:1920
+                },
+
+                height:{
+                    ideal:1080
+                }
+
+            },
+
+            audio:false
+
+        });
+
+        video.srcObject = stream;
+
+        await video.play();
+
+        status("✅ Kamera Aktif");
+
+    }catch(err){
+
+        console.log(err);
+
+        alert(err.name+"\n"+err.message);
+
+        status("❌ Gagal membuka kamera");
+
+    }
 
 }
-/*******************************************************
- RESPONSE JSON
-*******************************************************/
-function jsonResponse(data) {
 
-  return ContentService
-    .createTextOutput(
-      JSON.stringify(data)
-    )
-    .setMimeType(
-      ContentService.MimeType.JSON
+function status(text){
+
+    statusText.innerHTML=text;
+
+}
+
+function showLoading(){
+
+    loading.style.display="block";
+
+}
+
+function hideLoading(){
+
+    loading.style.display="none";
+
+}
+
+async function scan(){
+
+    scanBtn.disabled=true;
+
+    showLoading();
+
+    status("📷 Mengambil gambar...");
+
+    const canvas=
+    document.getElementById("canvas");
+
+    canvas.width=video.videoWidth;
+
+    canvas.height=video.videoHeight;
+
+    const ctx=
+    canvas.getContext("2d");
+
+    ctx.drawImage(
+
+        video,
+
+        0,
+
+        0,
+
+        canvas.width,
+
+        canvas.height
+
     );
 
-}
+    const image=
+    canvas
+    .toDataURL("image/jpeg",0.9)
+    .replace(/^data:image\/jpeg;base64,/,"");
 
-/*******************************************************
- TEST OCR
-*******************************************************/
-function testVision() {
+    status("☁ Mengirim ke server...");
 
-  Logger.log("Vision API Aktif");
+    try{
 
-}
+        const response=
+        await fetch(
 
+            WEBAPP_URL,
 
-/*******************************************************
- TEST SHEET
-*******************************************************/
-function testSheet(){
+            {
 
-  Logger.log(
+                method:"POST",
 
-    saveDocument("9200009099")
+                headers:{
 
-  );
+                    "Content-Type":"application/json"
 
-}
+                },
 
+                body:JSON.stringify({
 
-/*******************************************************
- CLEAR DUPLIKAT (OPTIONAL)
-*******************************************************/
-function clearData(){
+                    image:image
 
-  const sheet=
-  SpreadsheetApp
-  .getActiveSpreadsheet()
-  .getSheetByName(SHEET_NAME);
+                })
 
-  const lastRow=sheet.getLastRow();
+            }
 
-  if(lastRow>1){
+        );
 
-    sheet
-    .getRange(
-      2,
-      1,
-      lastRow-1,
-      3
-    )
-    .clearContent();
+        const json=
+        await response.json();
 
-  }
+        console.log(json);
+             if(json.success){
 
-}
+            hasil.innerHTML = json.nomor;
 
-/*******************************************************
- STATUS SERVER
-*******************************************************/
-function doGet() {
+            status("✅ " + json.message);
 
-  return ContentService
-    .createTextOutput(
-      JSON.stringify({
-        success: true,
-        message: "AP Scanner API Running",
-        version: "1.0"
-      })
-    )
-    .setMimeType(
-      ContentService.MimeType.JSON
-    );
+            playBeep();
 
-}
+            vibrate();
 
+        }else{
 
-/*******************************************************
- HEALTH CHECK
-*******************************************************/
-function healthCheck(){
+            hasil.innerHTML = "-";
 
-  return {
+            status("❌ " + json.message);
 
-    success:true,
+        }
 
-    time:new Date(),
+    }catch(err){
 
-    sheet:SHEET_NAME,
+        console.error(err);
 
-    apiKey:
-      API_KEY!="" ? "OK":"KOSONG"
+        hasil.innerHTML="-";
 
-  };
+        status("❌ Gagal terhubung ke Apps Script");
+
+    }
+
+    hideLoading();
+
+    scanBtn.disabled=false;
 
 }
+
+function playBeep(){
+
+    try{
+
+        const audio = new Audio(
+            "https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg"
+        );
+
+        audio.volume = 1;
+
+        audio.play();
+
+    }catch(e){
+
+        console.log(e);
+
+    }
+
+}
+
+function vibrate(){
+
+    if(navigator.vibrate){
+
+        navigator.vibrate(200);
+
+    }
+
+}
+
+</script>
+
+</body>
+
+</html>
