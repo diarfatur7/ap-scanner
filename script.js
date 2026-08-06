@@ -1,5 +1,5 @@
 const WEBAPP_URL =
-"https://script.google.com/macros/s/AKfycbzcMdWRsq1F_MNI2h1f0ybXFy_h4fYI5zjpxbrvQ0aBbe4pFt_ZvMOl07pOwR9qU6Yf9g/exec";
+"https://script.google.com/macros/s/AKfycbzqA2rJ8mwF4bQcgwzNgtfgM8NapRRQD5yiiA37YtVwqbqDsMXmQCacAOsb6q2Q0RsNkg/exec";
 
 const video = document.getElementById("video");
 const hasil = document.getElementById("hasil");
