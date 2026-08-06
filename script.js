@@ -121,6 +121,14 @@ function vibrate(){
 
         });
 
+        alert("Status : " + response.status);
+
+        const text = await response.text();
+
+        alert(text);
+
+        return;
+
         const json = await response.json();
 
         console.log(json);
