@@ -1,5 +1,5 @@
 const WEBAPP_URL =
-    "https://script.google.com/macros/s/AKfycbzx9MVC-6LKsa8KRSM3N-bZIoBEN0O64Wo4dFIH_RuF-TVU9Kpxj98iYfXev4k9n-f2RQ/exec";
+    "https://script.google.com/macros/s/AKfycbzg0Q5slomCGANi1AD6G4PRNmBOH154c7CZnjqosoU5O6znIlXcxKm3tytai6uD-wjcnA/exec";
 
 
 const video =
