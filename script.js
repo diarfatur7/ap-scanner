@@ -9,7 +9,7 @@
  ************************************************************/
 
 const WEBAPP_URL =
-    "https://script.google.com/macros/s/AKfycbx6G1imzmvM8BdfPtwzl8RtAFIqG0TMEm9gYMf31j6NHVb8pAT6Aqp10qfcKa7euTcaMg/exec";
+    "https://script.google.com/macros/s/AKfycbzg0Q5slomCGANi1AD6G4PRNmBOH154c7CZnjqosoU5O6znIlXcxKm3tytai6uD-wjcnA/exec";
 
 
 /************************************************************
