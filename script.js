@@ -1,20 +1,6 @@
-/************************************************************
- * AP SCANNER
- * Frontend - GitHub Pages
- ************************************************************/
-
-
-/************************************************************
- * GOOGLE APPS SCRIPT WEB APP
- ************************************************************/
-
 const WEBAPP_URL =
-    "https://script.google.com/macros/s/AKfycbzg0Q5slomCGANi1AD6G4PRNmBOH154c7CZnjqosoU5O6znIlXcxKm3tytai6uD-wjcnA/exec";
+    "https://script.google.com/macros/s/AKfycbzx9MVC-6LKsa8KRSM3N-bZIoBEN0O64Wo4dFIH_RuF-TVU9Kpxj98iYfXev4k9n-f2RQ/exec";
 
-
-/************************************************************
- * ELEMENT HTML
- ************************************************************/
 
 const video =
     document.getElementById("video");
@@ -34,23 +20,36 @@ const scanBtn =
 const canvas =
     document.getElementById("canvas");
 
+const totalScan =
+    document.getElementById("totalScan");
+
+const successScan =
+    document.getElementById("successScan");
+
+const duplicateScan =
+    document.getElementById("duplicateScan");
+
+
+let total = 0;
+let success = 0;
+let duplicate = 0;
+
 
 /************************************************************
- * SAAT HALAMAN DIBUKA
+ * START
  ************************************************************/
 
-window.addEventListener("load", function () {
-
-    startCamera();
-
-});
+window.addEventListener(
+    "load",
+    startCamera
+);
 
 
 /************************************************************
  * STATUS
  ************************************************************/
 
-function status(text) {
+function status(text){
 
     statusText.innerHTML = text;
 
@@ -61,27 +60,32 @@ function status(text) {
  * LOADING
  ************************************************************/
 
-function showLoading() {
+function showLoading(){
 
-    loading.style.display = "block";
+    loading.style.display =
+        "block";
 
 }
 
 
-function hideLoading() {
+function hideLoading(){
 
-    loading.style.display = "none";
+    loading.style.display =
+        "none";
 
 }
 
 
 /************************************************************
- * START CAMERA
+ * CAMERA
  ************************************************************/
 
-async function startCamera() {
+async function startCamera(){
 
-    if (!navigator.mediaDevices) {
+    if(
+        !navigator.mediaDevices ||
+        !navigator.mediaDevices.getUserMedia
+    ){
 
         status(
             "❌ Browser tidak mendukung kamera"
@@ -92,57 +96,55 @@ async function startCamera() {
     }
 
 
-    try {
+    try{
 
         const stream =
-            await navigator.mediaDevices.getUserMedia({
+            await navigator
+                .mediaDevices
+                .getUserMedia({
 
-                video: {
+                    video:{
 
-                    facingMode: {
-                        ideal: "environment"
+                        facingMode:{
+                            ideal:"environment"
+                        },
+
+                        width:{
+                            ideal:1280
+                        },
+
+                        height:{
+                            ideal:720
+                        }
+
                     },
 
-                    width: {
-                        ideal: 1920
-                    },
+                    audio:false
 
-                    height: {
-                        ideal: 1080
-                    }
-
-                },
-
-                audio: false
-
-            });
+                });
 
 
-        video.srcObject = stream;
+        video.srcObject =
+            stream;
+
 
         await video.play();
 
 
         status(
-            "✅ Kamera Aktif"
+            "✅ Kamera siap — arahkan nomor AP ke kotak"
         );
 
 
-    } catch (err) {
+    }catch(err){
 
         console.error(
             "CAMERA ERROR:",
             err
         );
 
-        alert(
-            err.name +
-            "\n\n" +
-            err.message
-        );
-
         status(
-            "❌ Gagal membuka kamera"
+            "❌ Kamera gagal dibuka"
         );
 
     }
@@ -151,122 +153,190 @@ async function startCamera() {
 
 
 /************************************************************
- * SCAN
+ * FAST IMAGE CROP
+ *
+ * Hanya mengambil area tengah kamera.
  ************************************************************/
 
-async function scan() {
+function captureCrop(){
+
+    const videoWidth =
+        video.videoWidth;
+
+    const videoHeight =
+        video.videoHeight;
 
 
-    /********************************************************
-     * LOCK BUTTON
-     ********************************************************/
+    if(
+        !videoWidth ||
+        !videoHeight
+    ){
 
-    scanBtn.disabled = true;
-
-    showLoading();
-
-    hasil.innerHTML = "-";
-
-
-    status(
-        "📷 Mengambil gambar..."
-    );
-
-
-    /********************************************************
-     * CEK KAMERA
-     ********************************************************/
-
-    if (
-        !video.videoWidth ||
-        !video.videoHeight
-    ) {
-
-        status(
-            "❌ Kamera belum siap"
+        throw new Error(
+            "Kamera belum siap"
         );
-
-        hideLoading();
-
-        scanBtn.disabled = false;
-
-        return;
 
     }
 
 
-    /********************************************************
-     * SET CANVAS
-     ********************************************************/
+    /*
+     * Area crop:
+     *
+     * X = 8%
+     * Y = 35%
+     * W = 84%
+     * H = 30%
+     *
+     * Sesuai kotak hijau di layar.
+     */
+
+
+    const cropX =
+        Math.round(
+            videoWidth * 0.08
+        );
+
+
+    const cropY =
+        Math.round(
+            videoHeight * 0.35
+        );
+
+
+    const cropWidth =
+        Math.round(
+            videoWidth * 0.84
+        );
+
+
+    const cropHeight =
+        Math.round(
+            videoHeight * 0.30
+        );
+
+
+    /*
+     * Batasi lebar gambar
+     * agar upload lebih ringan.
+     */
+
+    const maxWidth = 1000;
+
+
+    const scale =
+        Math.min(
+            1,
+            maxWidth / cropWidth
+        );
+
 
     canvas.width =
-        video.videoWidth;
+        Math.round(
+            cropWidth * scale
+        );
+
 
     canvas.height =
-        video.videoHeight;
+        Math.round(
+            cropHeight * scale
+        );
 
-
-    /********************************************************
-     * AMBIL FRAME KAMERA
-     ********************************************************/
 
     const ctx =
-        canvas.getContext("2d");
+        canvas.getContext(
+            "2d"
+        );
+
 
     ctx.drawImage(
 
         video,
 
-        0,
+        cropX,
+        cropY,
 
+        cropWidth,
+        cropHeight,
+
+        0,
         0,
 
         canvas.width,
-
         canvas.height
 
     );
 
 
-    /********************************************************
-     * CONVERT KE BASE64
-     ********************************************************/
+    /*
+     * JPEG 70%
+     */
 
-    const image =
-        canvas
-            .toDataURL(
-                "image/jpeg",
-                0.9
-            )
-            .replace(
-                /^data:image\/jpeg;base64,/,
-                ""
-            );
+    return canvas
+        .toDataURL(
+            "image/jpeg",
+            0.70
+        )
+        .replace(
+            /^data:image\/jpeg;base64,/,
+            ""
+        );
+
+}
 
 
-    console.log(
-        "Image size:",
-        image.length
-    );
+/************************************************************
+ * SCAN
+ ************************************************************/
+
+async function scan(){
+
+    scanBtn.disabled =
+        true;
+
+
+    total++;
+
+    totalScan.innerText =
+        total;
+
+
+    hasil.innerHTML =
+        "-";
+
+
+    showLoading();
 
 
     status(
-        "☁ Mengirim gambar ke Apps Script..."
+        "📷 Mengambil area nomor AP..."
     );
 
 
-    /********************************************************
-     * KIRIM KE APPS SCRIPT
-     ********************************************************/
+    try{
 
-    try {
+
+        /****************************************************
+         * CAPTURE CROP
+         ****************************************************/
+
+        const image =
+            captureCrop();
 
 
         console.log(
-            "Mengirim POST ke:",
-            WEBAPP_URL
+            "Image size:",
+            image.length
         );
 
+
+        status(
+            "☁ Mengirim ke OCR..."
+        );
+
+
+        /****************************************************
+         * REQUEST
+         ****************************************************/
 
         const response =
             await fetch(
@@ -275,20 +345,13 @@ async function scan() {
 
                 {
 
-                    method: "POST",
+                    method:
+                        "POST",
 
-                    /*
-                     * Ikuti redirect dari Apps Script
-                     */
+                    redirect:
+                        "follow",
 
-                    redirect: "follow",
-
-                    /*
-                     * text/plain dipakai agar browser
-                     * tidak melakukan preflight JSON.
-                     */
-
-                    headers: {
+                    headers:{
 
                         "Content-Type":
                             "text/plain;charset=utf-8"
@@ -298,7 +361,8 @@ async function scan() {
                     body:
                         JSON.stringify({
 
-                            image: image
+                            image:
+                                image
 
                         })
 
@@ -307,98 +371,59 @@ async function scan() {
             );
 
 
-        /********************************************************
-         * HTTP RESPONSE
-         ********************************************************/
-
         console.log(
-            "HTTP STATUS:",
+            "HTTP:",
             response.status
         );
 
-
-        console.log(
-            "RESPONSE URL:",
-            response.url
-        );
-
-
-        /********************************************************
-         * BACA RESPONSE
-         ********************************************************/
 
         const responseText =
             await response.text();
 
 
         console.log(
-            "APPS SCRIPT RESPONSE:",
+            "Response:",
             responseText
         );
 
 
-        /********************************************************
-         * RESPONSE KOSONG
-         ********************************************************/
-
-        if (!responseText) {
-
-            throw new Error(
-                "Response Apps Script kosong"
-            );
-
-        }
-
-
-        /********************************************************
-         * PARSE JSON
-         ********************************************************/
+        /****************************************************
+         * PARSE
+         ****************************************************/
 
         let json;
 
 
-        try {
+        try{
 
             json =
                 JSON.parse(
                     responseText
                 );
 
-        } catch (parseError) {
-
-            console.error(
-                "JSON PARSE ERROR:",
-                parseError
-            );
-
-            console.error(
-                "RAW RESPONSE:",
-                responseText
-            );
+        }catch(err){
 
             throw new Error(
-                "Response Apps Script bukan JSON"
+                "Response server tidak valid"
             );
 
         }
 
 
-        console.log(
-            "JSON RESULT:",
-            json
-        );
+        /****************************************************
+         * BERHASIL
+         ****************************************************/
+
+        if(
+            json.success
+        ){
+
+            success++;
 
 
-        /********************************************************
-         * CEK HASIL
-         ********************************************************/
+            successScan.innerText =
+                success;
 
-        if (json.success) {
-
-
-            /****************************************************
-             * NOMOR AP BERHASIL DITEMUKAN
-             ****************************************************/
 
             hasil.innerHTML =
                 json.nomor;
@@ -415,43 +440,67 @@ async function scan() {
             vibrate();
 
 
-        } else {
+        }else{
 
 
-            /****************************************************
-             * ERROR DARI APPS SCRIPT
-             ****************************************************/
+            /************************************************
+             * DUPLIKAT
+             ************************************************/
 
-            hasil.innerHTML =
-                "-";
+            if(
+                json.message &&
+                json.message
+                    .toLowerCase()
+                    .includes(
+                        "sudah pernah"
+                    )
+            ){
+
+                duplicate++;
 
 
-            status(
-                "❌ " +
-                (
-                    json.message ||
-                    "Nomor AP tidak ditemukan"
-                )
-            );
+                duplicateScan.innerText =
+                    duplicate;
 
 
-            console.error(
-                "APPS SCRIPT ERROR:",
-                json
-            );
+                hasil.innerHTML =
+                    json.nomor ||
+                    "-";
+
+
+                status(
+                    "⚠️ " +
+                    json.message
+                );
+
+
+                playBeep();
+
+
+            }else{
+
+
+                hasil.innerHTML =
+                    "-";
+
+
+                status(
+                    "❌ " +
+                    (
+                        json.message ||
+                        "Nomor AP tidak ditemukan"
+                    )
+                );
+
+            }
 
         }
 
 
-    } catch (err) {
-
-
-        /********************************************************
-         * FETCH ERROR
-         ********************************************************/
+    }catch(err){
 
         console.error(
-            "FETCH ERROR:",
+            "SCAN ERROR:",
             err
         );
 
@@ -461,20 +510,26 @@ async function scan() {
 
 
         status(
-            "❌ Gagal terhubung ke Apps Script"
+            "❌ " +
+            err.message
         );
 
 
-    } finally {
+    }finally{
 
-
-        /********************************************************
-         * UNLOCK
-         ********************************************************/
 
         hideLoading();
 
-        scanBtn.disabled = false;
+
+        scanBtn.disabled =
+            false;
+
+
+        /*
+         * Fokus kembali ke tombol.
+         */
+
+        scanBtn.focus();
 
     }
 
@@ -485,31 +540,29 @@ async function scan() {
  * BEEP
  ************************************************************/
 
-function playBeep() {
+function playBeep(){
 
-    try {
+    try{
 
         const audio =
             new Audio(
                 "https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg"
             );
 
-        audio.volume = 1;
+
+        audio.volume =
+            0.8;
+
 
         audio.play()
-            .catch(function (err) {
+            .catch(
+                () => {}
+            );
 
-                console.log(
-                    "Audio autoplay blocked:",
-                    err
-                );
 
-            });
-
-    } catch (e) {
+    }catch(e){
 
         console.log(
-            "Audio error:",
             e
         );
 
@@ -522,24 +575,16 @@ function playBeep() {
  * VIBRATION
  ************************************************************/
 
-function vibrate() {
+function vibrate(){
 
-    if (
+    if(
         navigator.vibrate
-    ) {
+    ){
 
-        navigator.vibrate(200);
+        navigator.vibrate(
+            150
+        );
 
     }
 
 }
-
-
-/************************************************************
- * BUTTON
- ************************************************************/
-
-scanBtn.addEventListener(
-    "click",
-    scan
-);
