@@ -10,7 +10,7 @@
  * Pastikan menggunakan URL /exec
  */
 const WEBAPP_URL =
-    "https://script.google.com/macros/s/AKfycbzqA2rJ8mwF4bQcgwzNgtfgM8NapRRQD5yiiA37YtVwqbqDsMXmQCacAOsb6q2Q0RsNkg/exec";
+    "https://script.google.com/macros/s/AKfycbzx9MVC-6LKsa8KRSM3N-bZIoBEN0O64Wo4dFIH_RuF-TVU9Kpxj98iYfXev4k9n-f2RQ/exec";
 
 
 /************************************************************
