@@ -4,11 +4,10 @@
  ************************************************************/
 
 
-/*
- * URL WEB APP GOOGLE APPS SCRIPT
- *
- * Pastikan menggunakan URL /exec
- */
+/************************************************************
+ * GOOGLE APPS SCRIPT WEB APP
+ ************************************************************/
+
 const WEBAPP_URL =
     "https://script.google.com/macros/s/AKfycbzx9MVC-6LKsa8KRSM3N-bZIoBEN0O64Wo4dFIH_RuF-TVU9Kpxj98iYfXev4k9n-f2RQ/exec";
 
@@ -40,11 +39,11 @@ const canvas =
  * SAAT HALAMAN DIBUKA
  ************************************************************/
 
-window.onload = function () {
+window.addEventListener("load", function () {
 
     startCamera();
 
-};
+});
 
 
 /************************************************************
@@ -124,12 +123,17 @@ async function startCamera() {
         await video.play();
 
 
-        status("✅ Kamera Aktif");
+        status(
+            "✅ Kamera Aktif"
+        );
 
 
     } catch (err) {
 
-        console.error(err);
+        console.error(
+            "CAMERA ERROR:",
+            err
+        );
 
         alert(
             err.name +
@@ -152,20 +156,26 @@ async function startCamera() {
 
 async function scan() {
 
+
+    /********************************************************
+     * LOCK BUTTON
+     ********************************************************/
+
     scanBtn.disabled = true;
 
     showLoading();
 
     hasil.innerHTML = "-";
 
+
     status(
         "📷 Mengambil gambar..."
     );
 
 
-    /*
-     * Pastikan kamera sudah memiliki ukuran
-     */
+    /********************************************************
+     * CEK KAMERA
+     ********************************************************/
 
     if (
         !video.videoWidth ||
@@ -185,9 +195,9 @@ async function scan() {
     }
 
 
-    /*
-     * Ukuran canvas mengikuti kamera
-     */
+    /********************************************************
+     * SET CANVAS
+     ********************************************************/
 
     canvas.width =
         video.videoWidth;
@@ -196,9 +206,9 @@ async function scan() {
         video.videoHeight;
 
 
-    /*
-     * Ambil frame kamera
-     */
+    /********************************************************
+     * AMBIL FRAME KAMERA
+     ********************************************************/
 
     const ctx =
         canvas.getContext("2d");
@@ -218,9 +228,9 @@ async function scan() {
     );
 
 
-    /*
-     * Convert gambar menjadi Base64
-     */
+    /********************************************************
+     * CONVERT KE BASE64
+     ********************************************************/
 
     const image =
         canvas
@@ -234,17 +244,29 @@ async function scan() {
             );
 
 
-    status(
-        "☁ Mengirim gambar ke server..."
+    console.log(
+        "Image size:",
+        image.length
     );
 
+
+    status(
+        "☁ Mengirim gambar ke Apps Script..."
+    );
+
+
+    /********************************************************
+     * KIRIM KE APPS SCRIPT
+     ********************************************************/
 
     try {
 
 
-        /****************************************************
-         * KIRIM KE GOOGLE APPS SCRIPT
-         ****************************************************/
+        console.log(
+            "Mengirim POST ke:",
+            WEBAPP_URL
+        );
+
 
         const response =
             await fetch(
@@ -256,8 +278,14 @@ async function scan() {
                     method: "POST",
 
                     /*
-                     * text/plain digunakan supaya request
-                     * tidak membutuhkan preflight JSON.
+                     * Ikuti redirect dari Apps Script
+                     */
+
+                    redirect: "follow",
+
+                    /*
+                     * text/plain dipakai agar browser
+                     * tidak melakukan preflight JSON.
                      */
 
                     headers: {
@@ -279,29 +307,52 @@ async function scan() {
             );
 
 
+        /********************************************************
+         * HTTP RESPONSE
+         ********************************************************/
+
         console.log(
-            "HTTP Status:",
+            "HTTP STATUS:",
             response.status
         );
 
 
-        /*
-         * Baca response
-         */
+        console.log(
+            "RESPONSE URL:",
+            response.url
+        );
+
+
+        /********************************************************
+         * BACA RESPONSE
+         ********************************************************/
 
         const responseText =
             await response.text();
 
 
         console.log(
-            "Response Apps Script:",
+            "APPS SCRIPT RESPONSE:",
             responseText
         );
 
 
-        /*
-         * Coba ubah response menjadi JSON
-         */
+        /********************************************************
+         * RESPONSE KOSONG
+         ********************************************************/
+
+        if (!responseText) {
+
+            throw new Error(
+                "Response Apps Script kosong"
+            );
+
+        }
+
+
+        /********************************************************
+         * PARSE JSON
+         ********************************************************/
 
         let json;
 
@@ -316,31 +367,38 @@ async function scan() {
         } catch (parseError) {
 
             console.error(
-                "JSON Parse Error:",
+                "JSON PARSE ERROR:",
                 parseError
             );
 
-            status(
-                "❌ Response server tidak valid"
+            console.error(
+                "RAW RESPONSE:",
+                responseText
             );
 
-            hasil.innerHTML = "-";
-
-            return;
+            throw new Error(
+                "Response Apps Script bukan JSON"
+            );
 
         }
 
 
-        /****************************************************
-         * HASIL DARI APPS SCRIPT
-         ****************************************************/
+        console.log(
+            "JSON RESULT:",
+            json
+        );
+
+
+        /********************************************************
+         * CEK HASIL
+         ********************************************************/
 
         if (json.success) {
 
 
-            /*
-             * Nomor AP ditemukan
-             */
+            /****************************************************
+             * NOMOR AP BERHASIL DITEMUKAN
+             ****************************************************/
 
             hasil.innerHTML =
                 json.nomor;
@@ -360,12 +418,13 @@ async function scan() {
         } else {
 
 
-            /*
-             * Nomor tidak ditemukan
-             * atau terjadi error
-             */
+            /****************************************************
+             * ERROR DARI APPS SCRIPT
+             ****************************************************/
 
-            hasil.innerHTML = "-";
+            hasil.innerHTML =
+                "-";
+
 
             status(
                 "❌ " +
@@ -375,11 +434,21 @@ async function scan() {
                 )
             );
 
+
+            console.error(
+                "APPS SCRIPT ERROR:",
+                json
+            );
+
         }
 
 
     } catch (err) {
 
+
+        /********************************************************
+         * FETCH ERROR
+         ********************************************************/
 
         console.error(
             "FETCH ERROR:",
@@ -387,7 +456,8 @@ async function scan() {
         );
 
 
-        hasil.innerHTML = "-";
+        hasil.innerHTML =
+            "-";
 
 
         status(
@@ -397,6 +467,10 @@ async function scan() {
 
     } finally {
 
+
+        /********************************************************
+         * UNLOCK
+         ********************************************************/
 
         hideLoading();
 
@@ -422,7 +496,15 @@ function playBeep() {
 
         audio.volume = 1;
 
-        audio.play();
+        audio.play()
+            .catch(function (err) {
+
+                console.log(
+                    "Audio autoplay blocked:",
+                    err
+                );
+
+            });
 
     } catch (e) {
 
