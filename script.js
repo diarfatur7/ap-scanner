@@ -1,590 +1,656 @@
+/*************************************************
+ * AP SCANNER
+ * FRONTEND JAVASCRIPT
+ *************************************************/
+
+
+/*************************************************
+ * GOOGLE APPS SCRIPT WEB APP
+ *************************************************/
 const WEBAPP_URL =
-    "https://script.google.com/macros/s/AKfycbzg0Q5slomCGANi1AD6G4PRNmBOH154c7CZnjqosoU5O6znIlXcxKm3tytai6uD-wjcnA/exec";
+  "https://script.google.com/macros/s/AKfycbzg0Q5slomCGANi1AD6G4PRNmBOH154c7CZnjqosoU5O6znIlXcxKm3tytai6uD-wjcnA/exec";
 
 
+/*************************************************
+ * ELEMENT
+ *************************************************/
 const video =
-    document.getElementById("video");
+  document.getElementById("video");
+
+const scanButton =
+  document.getElementById("scanButton");
 
 const hasil =
-    document.getElementById("hasil");
+  document.getElementById("hasil");
 
-const statusText =
-    document.getElementById("status");
+const vendorElement =
+  document.getElementById("vendor");
+
+const statusElement =
+  document.getElementById("status");
 
 const loading =
-    document.getElementById("loading");
+  document.getElementById("loading");
 
-const scanBtn =
-    document.getElementById("scanBtn");
+const scannedElement =
+  document.getElementById("scanned");
 
-const canvas =
-    document.getElementById("canvas");
+const berhasilElement =
+  document.getElementById("berhasil");
 
-const totalScan =
-    document.getElementById("totalScan");
-
-const successScan =
-    document.getElementById("successScan");
-
-const duplicateScan =
-    document.getElementById("duplicateScan");
+const duplikatElement =
+  document.getElementById("duplikat");
 
 
-let total = 0;
-let success = 0;
-let duplicate = 0;
+/*************************************************
+ * STAT
+ *************************************************/
+let scanned = 0;
+
+let berhasil = 0;
+
+let duplikat = 0;
 
 
-/************************************************************
- * START
- ************************************************************/
-
-window.addEventListener(
-    "load",
-    startCamera
-);
-
-
-/************************************************************
- * STATUS
- ************************************************************/
-
-function status(text){
-
-    statusText.innerHTML = text;
-
-}
-
-
-/************************************************************
- * LOADING
- ************************************************************/
-
-function showLoading(){
-
-    loading.style.display =
-        "block";
-
-}
-
-
-function hideLoading(){
-
-    loading.style.display =
-        "none";
-
-}
-
-
-/************************************************************
+/*************************************************
  * CAMERA
- ************************************************************/
-
-async function startCamera(){
-
-    if(
-        !navigator.mediaDevices ||
-        !navigator.mediaDevices.getUserMedia
-    ){
-
-        status(
-            "❌ Browser tidak mendukung kamera"
-        );
-
-        return;
-
-    }
+ *************************************************/
+let stream = null;
 
 
-    try{
+/*************************************************
+ * START CAMERA
+ *************************************************/
+async function startCamera() {
 
-        const stream =
-            await navigator
-                .mediaDevices
-                .getUserMedia({
+  try {
 
-                    video:{
+    stream =
+      await navigator.mediaDevices
+        .getUserMedia({
 
-                        facingMode:{
-                            ideal:"environment"
-                        },
+          video: {
 
-                        width:{
-                            ideal:1280
-                        },
+            facingMode: {
+              ideal: "environment"
+            },
 
-                        height:{
-                            ideal:720
-                        }
+            width: {
+              ideal: 1920
+            },
 
-                    },
+            height: {
+              ideal: 1080
+            }
+          },
 
-                    audio:false
+          audio: false
 
-                });
-
-
-        video.srcObject =
-            stream;
-
-
-        await video.play();
+        });
 
 
-        status(
-            "✅ Kamera siap — arahkan nomor AP ke kotak"
-        );
+    video.srcObject =
+      stream;
 
 
-    }catch(err){
+    await video.play();
 
-        console.error(
-            "CAMERA ERROR:",
-            err
-        );
 
-        status(
-            "❌ Kamera gagal dibuka"
-        );
+    statusElement.textContent =
+      "Kamera siap. Arahkan dokumen ke area scan.";
 
-    }
+    statusElement.className =
+      "status success";
 
+
+  } catch (error) {
+
+    console.error(error);
+
+
+    statusElement.textContent =
+      "Kamera tidak dapat digunakan: " +
+      error.message;
+
+    statusElement.className =
+      "status error";
+  }
 }
 
 
-/************************************************************
- * FAST IMAGE CROP
+/*************************************************
+ * CAPTURE IMAGE
  *
- * Hanya mengambil area tengah kamera.
- ************************************************************/
+ * Area diperbesar agar OCR tidak kehilangan
+ * nomor dokumen.
+ *************************************************/
+function captureCrop() {
 
-function captureCrop(){
-
-    const videoWidth =
-        video.videoWidth;
-
-    const videoHeight =
-        video.videoHeight;
+  const canvas =
+    document.createElement("canvas");
 
 
-    if(
-        !videoWidth ||
-        !videoHeight
-    ){
-
-        throw new Error(
-            "Kamera belum siap"
-        );
-
-    }
+  const videoWidth =
+    video.videoWidth;
 
 
-    /*
-     * Area crop:
-     *
-     * X = 8%
-     * Y = 35%
-     * W = 84%
-     * H = 30%
-     *
-     * Sesuai kotak hijau di layar.
-     */
+  const videoHeight =
+    video.videoHeight;
 
 
-    const cropX =
-        Math.round(
-            videoWidth * 0.08
-        );
+  if (
+    !videoWidth ||
+    !videoHeight
+  ) {
+
+    throw new Error(
+      "Kamera belum siap"
+    );
+  }
 
 
-    const cropY =
-        Math.round(
-            videoHeight * 0.35
-        );
-
-
-    const cropWidth =
-        Math.round(
-            videoWidth * 0.84
-        );
-
-
-    const cropHeight =
-        Math.round(
-            videoHeight * 0.30
-        );
-
-
-    /*
-     * Batasi lebar gambar
-     * agar upload lebih ringan.
-     */
-
-    const maxWidth = 1000;
-
-
-    const scale =
-        Math.min(
-            1,
-            maxWidth / cropWidth
-        );
-
-
-    canvas.width =
-        Math.round(
-            cropWidth * scale
-        );
-
-
-    canvas.height =
-        Math.round(
-            cropHeight * scale
-        );
-
-
-    const ctx =
-        canvas.getContext(
-            "2d"
-        );
-
-
-    ctx.drawImage(
-
-        video,
-
-        cropX,
-        cropY,
-
-        cropWidth,
-        cropHeight,
-
-        0,
-        0,
-
-        canvas.width,
-        canvas.height
-
+  /***********************************************
+   * AREA CROP
+   *
+   * X = 3%
+   * Y = 12%
+   * W = 94%
+   * H = 76%
+   ***********************************************/
+  const x =
+    Math.floor(
+      videoWidth * 0.03
     );
 
 
-    /*
-     * JPEG 70%
-     */
+  const y =
+    Math.floor(
+      videoHeight * 0.12
+    );
 
-    return canvas
-        .toDataURL(
-            "image/jpeg",
-            0.70
-        )
-        .replace(
-            /^data:image\/jpeg;base64,/,
-            ""
-        );
 
+  const width =
+    Math.floor(
+      videoWidth * 0.94
+    );
+
+
+  const height =
+    Math.floor(
+      videoHeight * 0.76
+    );
+
+
+  /***********************************************
+   * BATAS RESOLUSI
+   ***********************************************/
+  const maxWidth = 1400;
+
+
+  let outputWidth =
+    width;
+
+
+  let outputHeight =
+    height;
+
+
+  if (
+    outputWidth > maxWidth
+  ) {
+
+    const ratio =
+      maxWidth /
+      outputWidth;
+
+
+    outputWidth =
+      maxWidth;
+
+
+    outputHeight =
+      Math.floor(
+        outputHeight * ratio
+      );
+  }
+
+
+  canvas.width =
+    outputWidth;
+
+
+  canvas.height =
+    outputHeight;
+
+
+  const ctx =
+    canvas.getContext("2d");
+
+
+  ctx.drawImage(
+
+    video,
+
+    x,
+    y,
+    width,
+    height,
+
+    0,
+    0,
+    outputWidth,
+    outputHeight
+
+  );
+
+
+  /***********************************************
+   * JPEG QUALITY 85%
+   ***********************************************/
+  const dataURL =
+    canvas.toDataURL(
+      "image/jpeg",
+      0.85
+    );
+
+
+  /***********************************************
+   * HAPUS PREFIX
+   ***********************************************/
+  return dataURL
+    .replace(
+      /^data:image\/jpeg;base64,/,
+      ""
+    );
 }
 
 
-/************************************************************
+/*************************************************
  * SCAN
- ************************************************************/
+ *************************************************/
+async function scan() {
 
-async function scan(){
+  if (
+    !video.srcObject
+  ) {
 
-    scanBtn.disabled =
-        true;
+    statusElement.textContent =
+      "Kamera belum aktif.";
+
+    statusElement.className =
+      "status error";
+
+    return;
+  }
 
 
-    total++;
+  /***********************************************
+   * BUTTON LOCK
+   ***********************************************/
+  scanButton.disabled =
+    true;
 
-    totalScan.innerText =
-        total;
+
+  scanned++;
 
 
-    hasil.innerHTML =
+  updateStats();
+
+
+  loading.style.display =
+    "flex";
+
+
+  hasil.textContent =
+    "Membaca...";
+
+
+  vendorElement.textContent =
+    "-";
+
+
+  statusElement.textContent =
+    "Mengirim gambar ke OCR...";
+
+
+  statusElement.className =
+    "status";
+
+
+  try {
+
+    /*********************************************
+     * CAPTURE
+     *********************************************/
+    const image =
+      captureCrop();
+
+
+    console.log(
+      "Image captured"
+    );
+
+
+    /*********************************************
+     * REQUEST
+     *********************************************/
+    const response =
+      await fetch(
+        WEBAPP_URL,
+        {
+
+          method: "POST",
+
+          headers: {
+
+            "Content-Type":
+              "text/plain;charset=utf-8"
+          },
+
+          body:
+            JSON.stringify({
+              image: image
+            }),
+
+          redirect: "follow"
+
+        }
+      );
+
+
+    /*********************************************
+     * RESPONSE TEXT
+     *********************************************/
+    const responseText =
+      await response.text();
+
+
+    console.log(
+      "RAW RESPONSE:",
+      responseText
+    );
+
+
+    let json;
+
+
+    try {
+
+      json =
+        JSON.parse(
+          responseText
+        );
+
+    } catch (error) {
+
+      console.error(
+        "JSON ERROR:",
+        error
+      );
+
+
+      throw new Error(
+        "Response server tidak valid"
+      );
+    }
+
+
+    /*********************************************
+     * RESPONSE GAGAL
+     *********************************************/
+    if (!json.success) {
+
+      hasil.textContent =
         "-";
 
 
-    showLoading();
+      vendorElement.textContent =
+        json.vendor || "-";
 
 
-    status(
-        "📷 Mengambil area nomor AP..."
+      statusElement.textContent =
+        json.message ||
+        "Nomor dokumen tidak ditemukan";
+
+
+      statusElement.className =
+        "status error";
+
+
+      /*******************************************
+       * TAMPILKAN OCR DI CONSOLE
+       *
+       * Berguna untuk debugging
+       *******************************************/
+      if (json.ocr) {
+
+        console.log(
+          "========== OCR TEXT =========="
+        );
+
+        console.log(
+          json.ocr
+        );
+
+        console.log(
+          "=============================="
+        );
+      }
+
+
+      return;
+    }
+
+
+    /*********************************************
+     * HASIL
+     *********************************************/
+    hasil.textContent =
+      json.nomor ||
+      "-";
+
+
+    vendorElement.textContent =
+      json.vendor ||
+      "-";
+
+
+    /*********************************************
+     * DUPLIKAT
+     *********************************************/
+    if (
+      json.duplicate === true
+    ) {
+
+      duplikat++;
+
+
+      statusElement.textContent =
+        "⚠️ Nomor sudah pernah masuk filling";
+
+
+      statusElement.className =
+        "status warning";
+
+
+    } else {
+
+      berhasil++;
+
+
+      statusElement.textContent =
+        "✓ Berhasil masuk filling";
+
+
+      statusElement.className =
+        "status success";
+
+
+      beep();
+
+
+      vibrate();
+    }
+
+
+    updateStats();
+
+
+  } catch (error) {
+
+    console.error(
+      error
     );
 
 
-    try{
+    hasil.textContent =
+      "-";
 
 
-        /****************************************************
-         * CAPTURE CROP
-         ****************************************************/
+    vendorElement.textContent =
+      "-";
 
-        const image =
-            captureCrop();
 
+    statusElement.textContent =
+      "Error: " +
+      error.message;
 
-        console.log(
-            "Image size:",
-            image.length
-        );
 
+    statusElement.className =
+      "status error";
 
-        status(
-            "☁ Mengirim ke OCR..."
-        );
 
+  } finally {
 
-        /****************************************************
-         * REQUEST
-         ****************************************************/
+    loading.style.display =
+      "none";
 
-        const response =
-            await fetch(
 
-                WEBAPP_URL,
-
-                {
-
-                    method:
-                        "POST",
-
-                    redirect:
-                        "follow",
-
-                    headers:{
-
-                        "Content-Type":
-                            "text/plain;charset=utf-8"
-
-                    },
-
-                    body:
-                        JSON.stringify({
-
-                            image:
-                                image
-
-                        })
-
-                }
-
-            );
-
-
-        console.log(
-            "HTTP:",
-            response.status
-        );
-
-
-        const responseText =
-            await response.text();
-
-
-        console.log(
-            "Response:",
-            responseText
-        );
-
-
-        /****************************************************
-         * PARSE
-         ****************************************************/
-
-        let json;
-
-
-        try{
-
-            json =
-                JSON.parse(
-                    responseText
-                );
-
-        }catch(err){
-
-            throw new Error(
-                "Response server tidak valid"
-            );
-
-        }
-
-
-        /****************************************************
-         * BERHASIL
-         ****************************************************/
-
-        if(
-            json.success
-        ){
-
-            success++;
-
-
-            successScan.innerText =
-                success;
-
-
-            hasil.innerHTML =
-                json.nomor;
-
-
-            status(
-                "✅ " +
-                json.message
-            );
-
-
-            playBeep();
-
-            vibrate();
-
-
-        }else{
-
-
-            /************************************************
-             * DUPLIKAT
-             ************************************************/
-
-            if(
-                json.message &&
-                json.message
-                    .toLowerCase()
-                    .includes(
-                        "sudah pernah"
-                    )
-            ){
-
-                duplicate++;
-
-
-                duplicateScan.innerText =
-                    duplicate;
-
-
-                hasil.innerHTML =
-                    json.nomor ||
-                    "-";
-
-
-                status(
-                    "⚠️ " +
-                    json.message
-                );
-
-
-                playBeep();
-
-
-            }else{
-
-
-                hasil.innerHTML =
-                    "-";
-
-
-                status(
-                    "❌ " +
-                    (
-                        json.message ||
-                        "Nomor AP tidak ditemukan"
-                    )
-                );
-
-            }
-
-        }
-
-
-    }catch(err){
-
-        console.error(
-            "SCAN ERROR:",
-            err
-        );
-
-
-        hasil.innerHTML =
-            "-";
-
-
-        status(
-            "❌ " +
-            err.message
-        );
-
-
-    }finally{
-
-
-        hideLoading();
-
-
-        scanBtn.disabled =
-            false;
-
-
-        /*
-         * Fokus kembali ke tombol.
-         */
-
-        scanBtn.focus();
-
-    }
-
+    scanButton.disabled =
+      false;
+  }
 }
 
 
-/************************************************************
+/*************************************************
+ * UPDATE STAT
+ *************************************************/
+function updateStats() {
+
+  scannedElement.textContent =
+    scanned;
+
+
+  berhasilElement.textContent =
+    berhasil;
+
+
+  duplikatElement.textContent =
+    duplikat;
+}
+
+
+/*************************************************
  * BEEP
- ************************************************************/
+ *************************************************/
+function beep() {
 
-function playBeep(){
+  try {
 
-    try{
-
-        const audio =
-            new Audio(
-                "https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg"
-            );
+    const AudioContext =
+      window.AudioContext ||
+      window.webkitAudioContext;
 
 
-        audio.volume =
-            0.8;
-
-
-        audio.play()
-            .catch(
-                () => {}
-            );
-
-
-    }catch(e){
-
-        console.log(
-            e
-        );
-
+    if (!AudioContext) {
+      return;
     }
 
+
+    const audioContext =
+      new AudioContext();
+
+
+    const oscillator =
+      audioContext.createOscillator();
+
+
+    const gain =
+      audioContext.createGain();
+
+
+    oscillator.connect(
+      gain
+    );
+
+
+    gain.connect(
+      audioContext.destination
+    );
+
+
+    oscillator.frequency.value =
+      900;
+
+
+    oscillator.type =
+      "sine";
+
+
+    gain.gain.setValueAtTime(
+      0.15,
+      audioContext.currentTime
+    );
+
+
+    gain.gain.exponentialRampToValueAtTime(
+      0.001,
+      audioContext.currentTime + 0.15
+    );
+
+
+    oscillator.start();
+
+
+    oscillator.stop(
+      audioContext.currentTime + 0.15
+    );
+
+  } catch (error) {
+
+    console.log(
+      "Beep tidak tersedia"
+    );
+  }
 }
 
 
-/************************************************************
+/*************************************************
  * VIBRATION
- ************************************************************/
+ *************************************************/
+function vibrate() {
 
-function vibrate(){
+  if (
+    navigator.vibrate
+  ) {
 
-    if(
-        navigator.vibrate
-    ){
-
-        navigator.vibrate(
-            150
-        );
-
-    }
-
+    navigator.vibrate(
+      100
+    );
+  }
 }
+
+
+/*************************************************
+ * BUTTON
+ *************************************************/
+scanButton.addEventListener(
+  "click",
+  scan
+);
+
+
+/*************************************************
+ * START
+ *************************************************/
+startCamera();
