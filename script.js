@@ -1,6 +1,8 @@
 /****************************************************
- * AP SCANNER - SPEED OCR
- * Frontend
+ * AP SCANNER
+ * FRONTEND
+ *
+ * OCR = EXACT GREEN FRAME
  ****************************************************/
 
 
@@ -26,28 +28,39 @@ let vendor = "";
 ================================================== */
 
 const video =
-  document.getElementById("video");
+  document.getElementById(
+    "video"
+  );
 
 const scanButton =
-  document.getElementById("scanButton");
+  document.getElementById(
+    "scanButton"
+  );
 
 const resetButton =
-  document.getElementById("resetButton");
+  document.getElementById(
+    "resetButton"
+  );
 
 const hasil =
-  document.getElementById("hasil");
+  document.getElementById(
+    "hasil"
+  );
 
 const vendorElement =
-  document.getElementById("vendor");
+  document.getElementById(
+    "vendor"
+  );
 
 const statusElement =
-  document.getElementById("status");
+  document.getElementById(
+    "status"
+  );
 
 const scanLabel =
-  document.getElementById("scanLabel");
-
-const stepTitle =
-  document.getElementById("stepTitle");
+  document.getElementById(
+    "scanLabel"
+  );
 
 
 /* ==================================================
@@ -66,13 +79,7 @@ function setLoading(
 
 
   if (!loading) {
-
-    console.log(
-      "Loading element tidak ditemukan"
-    );
-
     return;
-
   }
 
 
@@ -82,20 +89,19 @@ function setLoading(
       "flex";
 
 
-    if (text) {
-
-      const loadingText =
-        loading.querySelector(
-          ".loading-text"
-        );
+    const loadingText =
+      loading.querySelector(
+        ".loading-text"
+      );
 
 
-      if (loadingText) {
+    if (
+      loadingText &&
+      text
+    ) {
 
-        loadingText.textContent =
-          text;
-
-      }
+      loadingText.textContent =
+        text;
 
     }
 
@@ -151,8 +157,7 @@ async function startCamera() {
             },
 
             frameRate: {
-              ideal: 30,
-              max: 30
+              ideal: 30
             }
 
           },
@@ -170,7 +175,7 @@ async function startCamera() {
 
 
     console.log(
-      "Camera:",
+      "CAMERA READY:",
       video.videoWidth,
       "x",
       video.videoHeight
@@ -180,7 +185,7 @@ async function startCamera() {
   } catch (error) {
 
     console.error(
-      "Camera error:",
+      "CAMERA ERROR:",
       error
     );
 
@@ -195,7 +200,7 @@ async function startCamera() {
 
 
 /* ==================================================
-   CAPTURE EXACT GREEN FRAME
+   EXACT GREEN FRAME CROP
 ================================================== */
 
 function captureCrop() {
@@ -203,12 +208,6 @@ function captureCrop() {
   const video =
     document.getElementById(
       "video"
-    );
-
-
-  const scanner =
-    document.querySelector(
-      ".scanner-card"
     );
 
 
@@ -220,12 +219,11 @@ function captureCrop() {
 
   if (
     !video ||
-    !scanner ||
     !frame
   ) {
 
     console.error(
-      "Video / scanner / frame tidak ditemukan"
+      "Video/frame tidak ditemukan"
     );
 
     return null;
@@ -233,21 +231,21 @@ function captureCrop() {
   }
 
 
-  const vw =
+  const videoWidth =
     video.videoWidth;
 
 
-  const vh =
+  const videoHeight =
     video.videoHeight;
 
 
   if (
-    !vw ||
-    !vh
+    !videoWidth ||
+    !videoHeight
   ) {
 
     console.error(
-      "Resolusi kamera belum tersedia"
+      "Video belum siap"
     );
 
     return null;
@@ -255,60 +253,80 @@ function captureCrop() {
   }
 
 
-  const scannerRect =
-    scanner.getBoundingClientRect();
+  /*
+   * =================================================
+   * RECT VIDEO DI LAYAR
+   * =================================================
+   */
 
+  const videoRect =
+    video.getBoundingClientRect();
+
+
+  /*
+   * RECT FRAME HIJAU DI LAYAR
+   */
 
   const frameRect =
     frame.getBoundingClientRect();
 
 
-  const scannerW =
-    scannerRect.width;
-
-
-  const scannerH =
-    scannerRect.height;
-
+  /*
+   * =================================================
+   * HITUNG OBJECT-FIT: COVER
+   * =================================================
+   */
 
   const videoRatio =
-    vw / vh;
+    videoWidth /
+    videoHeight;
 
 
-  const scannerRatio =
-    scannerW / scannerH;
+  const displayWidth =
+    videoRect.width;
 
 
-  let renderedW;
+  const displayHeight =
+    videoRect.height;
 
-  let renderedH;
+
+  const displayRatio =
+    displayWidth /
+    displayHeight;
+
+
+  let renderedWidth;
+
+  let renderedHeight;
 
   let offsetX;
 
   let offsetY;
 
 
-  /*
-   * object-fit: cover
-   */
-
   if (
-    videoRatio > scannerRatio
+    videoRatio >
+    displayRatio
   ) {
 
-    renderedH =
-      scannerH;
+    /*
+     * Video lebih lebar.
+     * Sisi kiri/kanan terpotong.
+     */
+
+    renderedHeight =
+      displayHeight;
 
 
-    renderedW =
-      renderedH *
+    renderedWidth =
+      renderedHeight *
       videoRatio;
 
 
     offsetX =
       (
-        renderedW -
-        scannerW
+        renderedWidth -
+        displayWidth
       ) / 2;
 
 
@@ -316,12 +334,17 @@ function captureCrop() {
 
   } else {
 
-    renderedW =
-      scannerW;
+    /*
+     * Video lebih tinggi.
+     * Atas/bawah terpotong.
+     */
+
+    renderedWidth =
+      displayWidth;
 
 
-    renderedH =
-      renderedW /
+    renderedHeight =
+      renderedWidth /
       videoRatio;
 
 
@@ -330,129 +353,150 @@ function captureCrop() {
 
     offsetY =
       (
-        renderedH -
-        scannerH
+        renderedHeight -
+        displayHeight
       ) / 2;
 
   }
 
 
   /*
-   * Posisi frame
+   * =================================================
+   * POSISI FRAME RELATIF VIDEO
+   * =================================================
    */
 
-  const frameX =
+  const frameLeft =
     frameRect.left -
-    scannerRect.left;
+    videoRect.left;
 
 
-  const frameY =
+  const frameTop =
     frameRect.top -
-    scannerRect.top;
+    videoRect.top;
 
 
   /*
-   * Konversi posisi layar
-   * menjadi koordinat video
+   * =================================================
+   * KONVERSI FRAME → KOORDINAT VIDEO ASLI
+   * =================================================
    */
 
   const sourceX =
     (
-      frameX +
+      frameLeft +
       offsetX
     ) /
-    renderedW *
-    vw;
+    renderedWidth *
+    videoWidth;
 
 
   const sourceY =
     (
-      frameY +
+      frameTop +
       offsetY
     ) /
-    renderedH *
-    vh;
+    renderedHeight *
+    videoHeight;
 
 
-  const sourceW =
+  const sourceWidth =
     frameRect.width /
-    renderedW *
-    vw;
+    renderedWidth *
+    videoWidth;
 
 
-  const sourceH =
+  const sourceHeight =
     frameRect.height /
-    renderedH *
-    vh;
+    renderedHeight *
+    videoHeight;
 
 
   /*
-   * Clamp
+   * =================================================
+   * CLAMP
+   * =================================================
    */
 
   const sx =
     Math.max(
       0,
-      Math.round(sourceX)
+      Math.min(
+        videoWidth - 1,
+        Math.round(sourceX)
+      )
     );
 
 
   const sy =
     Math.max(
       0,
-      Math.round(sourceY)
+      Math.min(
+        videoHeight - 1,
+        Math.round(sourceY)
+      )
     );
 
 
   const sw =
-    Math.min(
-      Math.round(sourceW),
-      vw - sx
+    Math.max(
+      1,
+      Math.min(
+        videoWidth - sx,
+        Math.round(sourceWidth)
+      )
     );
 
 
   const sh =
-    Math.min(
-      Math.round(sourceH),
-      vh - sy
+    Math.max(
+      1,
+      Math.min(
+        videoHeight - sy,
+        Math.round(sourceHeight)
+      )
     );
 
 
   /*
-   * Resize
+   * =================================================
+   * OUTPUT SIZE
+   * =================================================
+   *
+   * 600px lebih aman untuk angka kecil.
    */
 
-  const MAX_WIDTH = 420;
+  const MAX_WIDTH = 600;
 
 
-  let outputW =
+  let outputWidth =
     sw;
 
 
-  let outputH =
+  let outputHeight =
     sh;
 
 
   if (
-    outputW >
+    outputWidth >
     MAX_WIDTH
   ) {
 
     const ratio =
       MAX_WIDTH /
-      outputW;
+      outputWidth;
 
 
-    outputW =
+    outputWidth =
       Math.round(
-        outputW *
+        outputWidth *
         ratio
       );
 
 
-    outputH =
+    outputHeight =
       Math.round(
-        outputH *
+        outputHeight *
         ratio
       );
 
@@ -460,7 +504,9 @@ function captureCrop() {
 
 
   /*
-   * Canvas
+   * =================================================
+   * CANVAS
+   * =================================================
    */
 
   const canvas =
@@ -470,25 +516,28 @@ function captureCrop() {
 
 
   canvas.width =
-    outputW;
+    outputWidth;
 
 
   canvas.height =
-    outputH;
+    outputHeight;
 
 
   const ctx =
     canvas.getContext(
       "2d",
       {
-        alpha: false,
-        willReadFrequently: false
+        alpha: false
       }
     );
 
 
   /*
-   * Crop EXACT frame hijau
+   * =================================================
+   * CROP
+   *
+   * HANYA AREA DALAM FRAME HIJAU
+   * =================================================
    */
 
   ctx.drawImage(
@@ -502,41 +551,82 @@ function captureCrop() {
 
     0,
     0,
-    outputW,
-    outputH
+    outputWidth,
+    outputHeight
 
   );
 
 
   /*
-   * JPEG quality 30%
+   * =================================================
+   * JPEG
+   * =================================================
    */
 
   const imageData =
     canvas.toDataURL(
       "image/jpeg",
-      0.30
+      0.50
     );
 
 
+  /*
+   * DEBUG
+   */
+
   console.log(
-    "OCR crop:",
-    {
-      video:
-        `${vw}x${vh}`,
+    "========== EXACT OCR FRAME =========="
+  );
 
-      source:
-        `${sw}x${sh}`,
 
-      output:
-        `${outputW}x${outputH}`,
+  console.log(
+    "Video asli:",
+    videoWidth +
+    " x " +
+    videoHeight
+  );
 
-      sizeKB:
-        Math.round(
-          imageData.length /
-          1024
-        )
-    }
+
+  console.log(
+    "Frame layar:",
+    Math.round(frameRect.width) +
+    " x " +
+    Math.round(frameRect.height)
+  );
+
+
+  console.log(
+    "Crop video:",
+    sx +
+    ", " +
+    sy +
+    " / " +
+    sw +
+    " x " +
+    sh
+  );
+
+
+  console.log(
+    "Output OCR:",
+    outputWidth +
+    " x " +
+    outputHeight
+  );
+
+
+  console.log(
+    "Image size:",
+    Math.round(
+      imageData.length /
+      1024
+    ) +
+    " KB"
+  );
+
+
+  console.log(
+    "======================================"
   );
 
 
@@ -554,77 +644,82 @@ async function sendOCR(
   mode
 ) {
 
-  try {
-
-    const response =
-      await fetch(
-        WEBAPP_URL,
-        {
-
-          method: "POST",
-
-          headers: {
-            "Content-Type":
-              "text/plain;charset=utf-8"
-          },
-
-          body:
-            JSON.stringify({
-
-              mode:
-                mode,
-
-              image:
-                image
-
-            })
-
-        }
-      );
+  const start =
+    performance.now();
 
 
-    if (
-      !response.ok
-    ) {
+  const response =
+    await fetch(
+      WEBAPP_URL,
+      {
 
-      throw new Error(
-        "HTTP " +
-        response.status
-      );
+        method:
+          "POST",
 
-    }
+        headers: {
 
+          "Content-Type":
+            "text/plain;charset=utf-8"
 
-    const result =
-      await response.json();
+        },
 
+        body:
+          JSON.stringify({
 
-    console.log(
-      "OCR result:",
-      result
+            mode:
+              mode,
+
+            image:
+              image
+
+          })
+
+      }
     );
 
 
-    return result;
+  if (
+    !response.ok
+  ) {
 
-
-  } catch (error) {
-
-    console.error(
-      "OCR error:",
-      error
+    throw new Error(
+      "HTTP " +
+      response.status
     );
-
-
-    throw error;
 
   }
+
+
+  const result =
+    await response.json();
+
+
+  const time =
+    Math.round(
+      performance.now() -
+      start
+    );
+
+
+  console.log(
+    "OCR TIME:",
+    time + " ms"
+  );
+
+
+  console.log(
+    "OCR RESULT:",
+    result
+  );
+
+
+  return result;
 
 }
 
 
 /* ==================================================
-   SCAN NOMOR
+   SCAN NUMBER
 ================================================== */
 
 async function scanNomor() {
@@ -644,7 +739,7 @@ async function scanNomor() {
     if (!image) {
 
       throw new Error(
-        "Gagal mengambil gambar"
+        "Gambar gagal diambil"
       );
 
     }
@@ -656,6 +751,10 @@ async function scanNomor() {
         "number"
       );
 
+
+    /*
+     * BERHASIL
+     */
 
     if (
       result.success &&
@@ -684,19 +783,7 @@ async function scanNomor() {
       vibrate();
 
 
-      /*
-       * STEP 2
-       */
-
       currentStep = 2;
-
-
-      if (stepTitle) {
-
-        stepTitle.textContent =
-          "Scan Vendor";
-
-      }
 
 
       if (scanLabel) {
@@ -714,10 +801,19 @@ async function scanNomor() {
       setFrameVendor();
 
 
+      updateSteps();
+
+
     } else {
 
       statusElement.textContent =
-        "Nomor tidak terbaca. Coba lagi.";
+        "Nomor tidak terbaca — coba lagi";
+
+
+      console.log(
+        "OCR TEXT:",
+        result.text
+      );
 
 
       beepError();
@@ -728,12 +824,13 @@ async function scanNomor() {
   } catch (error) {
 
     console.error(
+      "SCAN NUMBER ERROR:",
       error
     );
 
 
     statusElement.textContent =
-      "OCR gagal. Coba lagi.";
+      "OCR gagal — coba lagi";
 
   } finally {
 
@@ -767,7 +864,7 @@ async function scanVendor() {
     if (!image) {
 
       throw new Error(
-        "Gagal mengambil gambar"
+        "Gambar gagal diambil"
       );
 
     }
@@ -802,17 +899,13 @@ async function scanVendor() {
       vibrate();
 
 
-      /*
-       * Langsung finalize
-       */
-
       await finalizeDocument();
 
 
     } else {
 
       statusElement.textContent =
-        "Vendor tidak terbaca. Coba lagi.";
+        "Vendor tidak terbaca";
 
 
       beepError();
@@ -823,12 +916,13 @@ async function scanVendor() {
   } catch (error) {
 
     console.error(
+      "SCAN VENDOR ERROR:",
       error
     );
 
 
     statusElement.textContent =
-      "OCR vendor gagal.";
+      "OCR vendor gagal";
 
   } finally {
 
@@ -860,11 +954,14 @@ async function finalizeDocument() {
         WEBAPP_URL,
         {
 
-          method: "POST",
+          method:
+            "POST",
 
           headers: {
+
             "Content-Type":
               "text/plain;charset=utf-8"
+
           },
 
           body:
@@ -902,10 +999,14 @@ async function finalizeDocument() {
 
 
     console.log(
-      "Finalize:",
+      "FINALIZE:",
       result
     );
 
+
+    /*
+     * DUPLICATE
+     */
 
     if (
       result.duplicate
@@ -927,13 +1028,17 @@ async function finalizeDocument() {
         "📷 SCAN DOKUMEN BARU";
 
 
-      setFrameNumber();
+      updateSteps();
 
 
       return;
 
     }
 
+
+    /*
+     * BERHASIL
+     */
 
     if (
       result.success
@@ -955,7 +1060,7 @@ async function finalizeDocument() {
         "📷 SCAN DOKUMEN BARU";
 
 
-      setFrameNumber();
+      updateSteps();
 
 
       return;
@@ -964,18 +1069,18 @@ async function finalizeDocument() {
 
 
     statusElement.textContent =
-      "Gagal menyimpan dokumen.";
+      "Gagal menyimpan";
 
   } catch (error) {
 
     console.error(
-      "Finalize error:",
+      "FINALIZE ERROR:",
       error
     );
 
 
     statusElement.textContent =
-      "Gagal menyimpan.";
+      "Gagal menyimpan";
 
   } finally {
 
@@ -1053,19 +1158,14 @@ function setFrameVendor() {
 
   if (frame) {
 
-    /*
-     * Vendor biasanya berada
-     * di area lebih lebar.
-     */
-
     frame.style.left =
-      "10%";
+      "8%";
 
     frame.style.right =
-      "10%";
+      "8%";
 
     frame.style.top =
-      "43%";
+      "42%";
 
     frame.style.height =
       "20%";
@@ -1077,6 +1177,122 @@ function setFrameVendor() {
 
     label.textContent =
       "ARAHKAN NAMA VENDOR KE SINI";
+
+  }
+
+}
+
+
+/* ==================================================
+   UPDATE STEPS
+================================================== */
+
+function updateSteps() {
+
+  const step1 =
+    document.getElementById(
+      "step1"
+    );
+
+  const step2 =
+    document.getElementById(
+      "step2"
+    );
+
+  const step3 =
+    document.getElementById(
+      "step3"
+    );
+
+
+  [
+    step1,
+    step2,
+    step3
+  ].forEach(
+    function(step) {
+
+      if (step) {
+
+        step.classList.remove(
+          "active",
+          "done"
+        );
+
+      }
+
+    }
+  );
+
+
+  if (
+    currentStep === 1
+  ) {
+
+    if (step1) {
+
+      step1.classList.add(
+        "active"
+      );
+
+    }
+
+  }
+
+
+  if (
+    currentStep === 2
+  ) {
+
+    if (step1) {
+
+      step1.classList.add(
+        "done"
+      );
+
+    }
+
+
+    if (step2) {
+
+      step2.classList.add(
+        "active"
+      );
+
+    }
+
+  }
+
+
+  if (
+    currentStep === 3
+  ) {
+
+    if (step1) {
+
+      step1.classList.add(
+        "done"
+      );
+
+    }
+
+
+    if (step2) {
+
+      step2.classList.add(
+        "done"
+      );
+
+    }
+
+
+    if (step3) {
+
+      step3.classList.add(
+        "active"
+      );
+
+    }
 
   }
 
@@ -1120,14 +1336,6 @@ function resetScanner() {
   }
 
 
-  if (stepTitle) {
-
-    stepTitle.textContent =
-      "Scan Nomor AP";
-
-  }
-
-
   if (scanButton) {
 
     scanButton.textContent =
@@ -1137,6 +1345,8 @@ function resetScanner() {
 
 
   setFrameNumber();
+
+  updateSteps();
 
 }
 
@@ -1233,7 +1443,7 @@ function beep() {
   } catch (error) {
 
     console.log(
-      "Beep tidak tersedia"
+      "Beep unavailable"
     );
 
   }
@@ -1297,19 +1507,13 @@ function beepError() {
       0.15
     );
 
-  } catch (error) {
-
-    console.log(
-      "Error beep tidak tersedia"
-    );
-
-  }
+  } catch (error) {}
 
 }
 
 
 /* ==================================================
-   VIBRATION
+   VIBRATE
 ================================================== */
 
 function vibrate() {
@@ -1343,13 +1547,17 @@ if (scanButton) {
 
         await scanNomor();
 
-      } else if (
+      }
+
+      else if (
         currentStep === 2
       ) {
 
         await scanVendor();
 
-      } else {
+      }
+
+      else {
 
         resetScanner();
 
@@ -1384,6 +1592,8 @@ document.addEventListener(
   function() {
 
     setFrameNumber();
+
+    updateSteps();
 
     startCamera();
 
