@@ -3,857 +3,901 @@
 
 <head>
 
-<meta charset="UTF-8">
+  <meta charset="UTF-8">
 
-<meta
-  name="viewport"
-  content="width=device-width, initial-scale=1.0, viewport-fit=cover"
->
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+  >
 
-<meta
-  name="theme-color"
-  content="#050b13"
->
+  <meta
+    name="theme-color"
+    content="#070a0d"
+  >
 
-<title>
-  AP Scanner
-</title>
+  <title>AP Scanner</title>
 
 
-<style>
+  <style>
 
-/* ==================================================
-   GLOBAL
-================================================== */
+    /* =================================================
+       RESET
+    ================================================= */
 
-* {
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-  box-sizing:
-    border-box;
 
-  margin: 0;
+    html,
+    body {
+      width: 100%;
+      min-height: 100%;
+      background: #070a0d;
+      color: #ffffff;
+      font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "SF Pro Display",
+        "Segoe UI",
+        sans-serif;
+    }
 
-  padding: 0;
 
-}
+    body {
+      overflow-x: hidden;
+    }
 
 
-body {
+    button {
+      font-family: inherit;
+    }
 
-  min-height: 100vh;
 
-  background:
+    /* =================================================
+       APP
+    ================================================= */
 
-    radial-gradient(
-      circle at top left,
-      #16304d,
-      transparent 40%
-    ),
+    .app {
+      width: 100%;
+      max-width: 520px;
+      min-height: 100vh;
+      margin: 0 auto;
 
-    radial-gradient(
-      circle at bottom right,
-      #0c2741,
-      transparent 40%
-    ),
+      background:
+        radial-gradient(
+          circle at 50% -10%,
+          rgba(0, 255, 136, 0.10),
+          transparent 35%
+        ),
+        #070a0d;
 
-    #050b13;
+      position: relative;
+    }
 
-  color: white;
 
-  font-family:
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    sans-serif;
+    /* =================================================
+       HEADER
+    ================================================= */
 
-  padding:
-    env(safe-area-inset-top)
-    14px
-    env(safe-area-inset-bottom)
-    14px;
+    .header {
+      padding:
+        calc(env(safe-area-inset-top) + 18px)
+        20px
+        14px;
 
-}
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
 
 
-.app {
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+    }
 
-  width: 100%;
 
-  max-width:
-    650px;
+    .brand-icon {
+      width: 38px;
+      height: 38px;
 
-  margin:
-    auto;
+      border-radius: 12px;
 
-}
+      display: flex;
+      align-items: center;
+      justify-content: center;
 
+      background:
+        linear-gradient(
+          145deg,
+          #00ff88,
+          #00c96a
+        );
 
-/* ==================================================
-   HEADER
-================================================== */
+      color: #03150d;
 
-.header {
+      font-size: 19px;
+      font-weight: 900;
 
-  display:
-    flex;
+      box-shadow:
+        0 8px 25px
+        rgba(0, 255, 136, 0.20);
+    }
 
-  justify-content:
-    space-between;
 
-  align-items:
-    center;
+    .brand-text h1 {
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: -0.3px;
+    }
 
-  padding:
-    20px 4px 14px;
 
-}
+    .brand-text span {
+      display: block;
 
+      margin-top: 2px;
 
-.brand-title {
+      color: #69727b;
 
-  font-size:
-    25px;
+      font-size: 10px;
+      font-weight: 600;
 
-  font-weight:
-    800;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+    }
 
-}
 
+    .online {
+      display: flex;
+      align-items: center;
+      gap: 6px;
 
-.brand-subtitle {
+      padding: 7px 10px;
 
-  margin-top:
-    3px;
+      border-radius: 20px;
 
-  color:
-    #8ea3b8;
+      background:
+        rgba(255,255,255,0.04);
 
-  font-size:
-    12px;
+      border:
+        1px solid rgba(255,255,255,0.06);
 
-}
+      color: #7d878f;
 
+      font-size: 10px;
+      font-weight: 700;
+    }
 
-.online {
 
-  display:
-    flex;
+    .online-dot {
+      width: 6px;
+      height: 6px;
 
-  align-items:
-    center;
+      border-radius: 50%;
 
-  gap:
-    6px;
+      background: #00ff88;
 
-  padding:
-    7px 10px;
+      box-shadow:
+        0 0 9px
+        rgba(0,255,136,0.8);
+    }
 
-  border-radius:
-    20px;
 
-  background:
-    rgba(34,197,94,.10);
+    /* =================================================
+       STEP INDICATOR
+    ================================================= */
 
-  border:
-    1px solid
-    rgba(34,197,94,.20);
+    .step-area {
+      padding: 0 20px 14px;
+    }
 
-  color:
-    #65e58c;
 
-  font-size:
-    11px;
+    .step-card {
+      display: flex;
+      align-items: center;
 
-  font-weight:
-    700;
+      padding: 10px 12px;
 
-}
+      border-radius: 16px;
 
+      background:
+        rgba(255,255,255,0.035);
 
-.online-dot {
+      border:
+        1px solid rgba(255,255,255,0.055);
+    }
 
-  width:
-    7px;
 
-  height:
-    7px;
+    .step {
+      flex: 1;
 
-  border-radius:
-    50%;
+      display: flex;
+      align-items: center;
+      gap: 8px;
 
-  background:
-    #32e875;
+      color: #525b63;
 
-  box-shadow:
-    0 0 10px
-    rgba(50,232,117,.8);
+      font-size: 10px;
+      font-weight: 800;
 
-}
+      letter-spacing: 0.4px;
+    }
 
 
-/* ==================================================
-   STEPS
-================================================== */
+    .step-number {
+      width: 25px;
+      height: 25px;
 
-.steps {
+      flex-shrink: 0;
 
-  display:
-    grid;
+      border-radius: 50%;
 
-  grid-template-columns:
-    repeat(3,1fr);
+      display: flex;
+      align-items: center;
+      justify-content: center;
 
-  gap:
-    7px;
+      background: #151a1e;
 
-  margin-bottom:
-    12px;
+      border:
+        1px solid #252d33;
 
-}
+      font-size: 10px;
+    }
 
 
-.step {
+    .step.active {
+      color: #ffffff;
+    }
 
-  padding:
-    10px 7px;
 
-  text-align:
-    center;
+    .step.active .step-number {
+      background: #00ff88;
+      border-color: #00ff88;
+      color: #03150d;
 
-  border-radius:
-    12px;
+      box-shadow:
+        0 0 18px
+        rgba(0,255,136,0.20);
+    }
 
-  background:
-    rgba(255,255,255,.045);
 
-  border:
-    1px solid
-    rgba(255,255,255,.07);
+    .step.done {
+      color: #00d977;
+    }
 
-  color:
-    #64788e;
 
-  font-size:
-    10px;
+    .step.done .step-number {
+      background:
+        rgba(0,255,136,0.10);
 
-  font-weight:
-    700;
+      border-color:
+        rgba(0,255,136,0.35);
 
-}
+      color: #00ff88;
+    }
 
 
-.step.active {
+    .step-line {
+      width: 22px;
+      height: 1px;
 
-  color:
-    white;
+      background:
+        #252c32;
 
-  background:
-    rgba(48,205,112,.10);
+      margin: 0 8px;
+    }
 
-  border-color:
-    rgba(48,205,112,.35);
 
-}
+    /* =================================================
+       SCANNER
+    ================================================= */
 
+    .scanner-card {
+      position: relative;
 
-.step.done {
+      margin: 0 16px;
 
-  color:
-    #66e58d;
+      height: 380px;
 
-}
+      overflow: hidden;
 
+      border-radius: 26px;
 
-/* ==================================================
-   SCANNER
-================================================== */
+      background: #11161a;
 
-.scanner-card {
+      border:
+        1px solid
+        rgba(255,255,255,0.08);
 
-  position:
-    relative;
+      box-shadow:
+        0 25px 60px
+        rgba(0,0,0,0.45);
+    }
 
-  width:
-    100%;
 
-  aspect-ratio:
-    4 / 3;
+    #video {
+      position: absolute;
 
-  overflow:
-    hidden;
+      inset: 0;
 
-  border-radius:
-    24px;
+      width: 100%;
+      height: 100%;
 
-  background:
-    #000;
+      object-fit: cover;
 
-  border:
-    1px solid
-    rgba(255,255,255,.10);
+      background: #0b0e11;
+    }
 
-  box-shadow:
-    0 20px 60px
-    rgba(0,0,0,.45);
 
-}
+    /* =================================================
+       CAMERA OVERLAY
+    ================================================= */
 
+    .camera-overlay {
+      position: absolute;
 
-/* ==================================================
-   VIDEO
-================================================== */
+      inset: 0;
 
-#video {
+      pointer-events: none;
 
-  position:
-    absolute;
+      background:
+        linear-gradient(
+          to bottom,
+          rgba(0,0,0,0.28),
+          transparent 25%,
+          transparent 75%,
+          rgba(0,0,0,0.40)
+        );
+    }
 
-  inset:
-    0;
 
-  width:
-    100%;
+    /* =================================================
+       SCAN LABEL
+    ================================================= */
 
-  height:
-    100%;
+    .scan-label {
+      position: absolute;
 
-  object-fit:
-    fill;
+      top: 18px;
+      left: 50%;
 
-}
+      transform:
+        translateX(-50%);
 
+      z-index: 5;
 
-/* ==================================================
-   CAMERA OVERLAY
-================================================== */
+      white-space: nowrap;
 
-.camera-overlay {
+      padding: 9px 15px;
 
-  position:
-    absolute;
+      border-radius: 20px;
 
-  inset:
-    0;
+      background:
+        rgba(4,8,7,0.72);
 
-  background:
-    linear-gradient(
-      to bottom,
-      rgba(0,0,0,.35),
-      transparent 25%,
-      transparent 72%,
-      rgba(0,0,0,.45)
-    );
+      border:
+        1px solid
+        rgba(0,255,136,0.25);
 
-  pointer-events:
-    none;
+      backdrop-filter:
+        blur(12px);
 
-}
+      -webkit-backdrop-filter:
+        blur(12px);
 
+      color: #00ff88;
 
-/* ==================================================
-   SCAN LABEL
-================================================== */
+      font-size: 10px;
+      font-weight: 800;
 
-.scan-label {
+      letter-spacing: 0.8px;
+    }
 
-  position:
-    absolute;
 
-  top:
-    30%;
+    /* =================================================
+       SMALL SCAN FRAME
+    ================================================= */
 
-  left:
-    50%;
+    .scan-frame {
+      position: absolute;
 
-  transform:
-    translateX(-50%);
+      left: 17%;
+      right: 17%;
 
-  white-space:
-    nowrap;
+      top: 38%;
 
-  padding:
-    7px 12px;
+      height: 18%;
 
-  border-radius:
-    20px;
+      z-index: 4;
 
-  background:
-    rgba(0,0,0,.65);
+      border:
+        2px solid
+        rgba(0,255,136,0.95);
 
-  backdrop-filter:
-    blur(8px);
+      border-radius: 16px;
 
-  color:
-    white;
+      box-shadow:
+        0 0 0 9999px
+        rgba(0,0,0,0.28),
+        0 0 22px
+        rgba(0,255,136,0.10);
 
-  font-size:
-    10px;
+      pointer-events: none;
+    }
 
-  font-weight:
-    800;
 
-  letter-spacing:
-    .5px;
+    /* corner accents */
 
-}
+    .scan-frame::before,
+    .scan-frame::after {
+      content: "";
 
+      position: absolute;
 
-/* ==================================================
-   GREEN OCR FRAME
-================================================== */
+      width: 18px;
+      height: 18px;
 
-.scan-frame {
+      border-color: #00ff88;
+      border-style: solid;
+    }
 
-  position:
-    absolute;
 
-  left:
-    7%;
+    .scan-frame::before {
+      top: -2px;
+      left: -2px;
 
-  right:
-    7%;
+      border-width: 3px 0 0 3px;
 
-  top:
-    36%;
+      border-radius:
+        13px 0 0 0;
+    }
 
-  height:
-    28%;
 
-  border:
-    2px solid
-    #36ef80;
+    .scan-frame::after {
+      right: -2px;
+      bottom: -2px;
 
-  border-radius:
-    10px;
+      border-width: 0 3px 3px 0;
 
-  box-shadow:
+      border-radius:
+        0 0 13px 0;
+    }
 
-    0 0 15px
-    rgba(54,239,128,.30),
 
-    inset 0 0 15px
-    rgba(54,239,128,.08);
+    /* =================================================
+       CAMERA FOOTER
+    ================================================= */
 
-  pointer-events:
-    none;
+    .camera-tip {
+      position: absolute;
 
-}
+      bottom: 16px;
 
+      left: 50%;
 
-/* ==================================================
-   CORNERS
-================================================== */
+      transform:
+        translateX(-50%);
 
-.scan-frame::before,
-.scan-frame::after {
+      z-index: 5;
 
-  content:
-    "";
+      white-space: nowrap;
 
-  position:
-    absolute;
+      color:
+        rgba(255,255,255,0.55);
 
-  width:
-    18px;
+      font-size: 9px;
 
-  height:
-    18px;
+      letter-spacing: 0.3px;
+    }
 
-  border-color:
-    #66ff9d;
 
-  border-style:
-    solid;
+    /* =================================================
+       RESULT CARD
+    ================================================= */
 
-}
+    .result-card {
+      margin: 16px;
 
+      padding: 18px;
 
-.scan-frame::before {
+      border-radius: 22px;
 
-  top:
-    -2px;
+      background:
+        linear-gradient(
+          145deg,
+          rgba(255,255,255,0.055),
+          rgba(255,255,255,0.025)
+        );
 
-  left:
-    -2px;
+      border:
+        1px solid
+        rgba(255,255,255,0.07);
 
-  border-width:
-    3px 0 0 3px;
+      box-shadow:
+        0 15px 40px
+        rgba(0,0,0,0.20);
+    }
 
-}
 
+    .result-title {
+      margin-bottom: 14px;
 
-.scan-frame::after {
+      color: #68727a;
 
-  right:
-    -2px;
+      font-size: 9px;
+      font-weight: 800;
 
-  bottom:
-    -2px;
+      letter-spacing: 1.4px;
 
-  border-width:
-    0 3px 3px 0;
+      text-transform: uppercase;
+    }
 
-}
 
+    .result-row {
+      display: flex;
+      align-items: center;
 
-/* ==================================================
-   RESULT
-================================================== */
+      min-height: 55px;
 
-.result-card {
+      padding: 10px 0;
+    }
 
-  margin-top:
-    12px;
 
-  padding:
-    15px;
+    .result-row + .result-row {
+      border-top:
+        1px solid
+        rgba(255,255,255,0.055);
+    }
 
-  border-radius:
-    18px;
 
-  background:
-    rgba(255,255,255,.055);
+    .result-icon {
+      width: 35px;
+      height: 35px;
 
-  border:
-    1px solid
-    rgba(255,255,255,.08);
+      margin-right: 12px;
 
-  backdrop-filter:
-    blur(18px);
+      border-radius: 11px;
 
-}
+      display: flex;
+      align-items: center;
+      justify-content: center;
 
+      background:
+        rgba(0,255,136,0.07);
 
-.result-row {
+      color: #00ff88;
 
-  display:
-    flex;
+      font-size: 14px;
+    }
 
-  justify-content:
-    space-between;
 
-  align-items:
-    center;
+    .result-info {
+      min-width: 0;
+      flex: 1;
+    }
 
-  gap:
-    12px;
 
-  padding:
-    8px 0;
+    .result-label {
+      color: #59636b;
 
-}
+      font-size: 9px;
+      font-weight: 700;
 
+      letter-spacing: 0.7px;
 
-.result-row + .result-row {
+      text-transform: uppercase;
+    }
 
-  border-top:
-    1px solid
-    rgba(255,255,255,.06);
 
-}
+    .result-value {
+      margin-top: 4px;
 
+      color: #ffffff;
 
-.result-label {
+      font-size: 15px;
+      font-weight: 750;
 
-  color:
-    #8297aa;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
 
-  font-size:
-    11px;
 
-}
+    #status {
+      margin-top: 12px;
 
+      color: #00ff88;
 
-.result-value {
+      font-size: 10px;
+      font-weight: 700;
 
-  max-width:
-    70%;
+      letter-spacing: 0.4px;
+    }
 
-  text-align:
-    right;
 
-  color:
-    white;
+    /* =================================================
+       SCAN BUTTON
+    ================================================= */
 
-  font-size:
-    13px;
+    .button-area {
+      padding: 0 16px;
+    }
 
-  font-weight:
-    700;
 
-  word-break:
-    break-word;
+    #scanButton {
+      width: 100%;
 
-}
+      height: 58px;
 
+      border: 0;
 
-/* ==================================================
-   BUTTON
-================================================== */
+      border-radius: 18px;
 
-button {
+      background:
+        linear-gradient(
+          135deg,
+          #00ff88,
+          #00d977
+        );
 
-  width:
-    100%;
+      color: #03150d;
 
-  border:
-    0;
+      font-size: 13px;
+      font-weight: 900;
 
-  border-radius:
-    15px;
+      letter-spacing: 0.5px;
 
-  padding:
-    15px;
+      cursor: pointer;
 
-  margin-top:
-    12px;
+      box-shadow:
+        0 12px 30px
+        rgba(0,255,136,0.18);
 
-  background:
-    linear-gradient(
-      135deg,
-      #29d66e,
-      #18b95a
-    );
+      transition:
+        transform 0.15s ease,
+        opacity 0.15s ease;
+    }
 
-  color:
-    #031109;
 
-  font-size:
-    14px;
+    #scanButton:active {
+      transform: scale(0.98);
+    }
 
-  font-weight:
-    800;
 
-  cursor:
-    pointer;
+    #scanButton:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
 
-}
 
+    #resetButton {
+      width: 100%;
 
-button:active {
+      height: 45px;
 
-  transform:
-    scale(.98);
+      margin-top: 9px;
 
-}
+      display: none;
 
+      border:
+        1px solid
+        rgba(255,255,255,0.08);
 
-.reset {
+      border-radius: 15px;
 
-  background:
-    rgba(255,255,255,.07);
+      background:
+        rgba(255,255,255,0.035);
 
-  color:
-    white;
+      color: #aab2b8;
 
-  border:
-    1px solid
-    rgba(255,255,255,.10);
+      font-size: 11px;
+      font-weight: 700;
+    }
 
-}
 
+    /* =================================================
+       STATS
+    ================================================= */
 
-/* ==================================================
-   STATS
-================================================== */
+    .stats {
+      display: grid;
 
-.stats {
+      grid-template-columns:
+        repeat(3, 1fr);
 
-  display:
-    grid;
+      gap: 9px;
 
-  grid-template-columns:
-    repeat(3,1fr);
+      padding:
+        16px 16px 25px;
+    }
 
-  gap:
-    8px;
 
-  margin-top:
-    12px;
+    .stat-card {
+      padding: 14px 10px;
 
-}
+      text-align: center;
 
+      border-radius: 16px;
 
-.stat {
+      background:
+        rgba(255,255,255,0.025);
 
-  padding:
-    12px 7px;
+      border:
+        1px solid
+        rgba(255,255,255,0.055);
+    }
 
-  text-align:
-    center;
 
-  border-radius:
-    14px;
+    .stat-number {
+      color: #ffffff;
 
-  background:
-    rgba(255,255,255,.045);
+      font-size: 20px;
+      font-weight: 850;
+    }
 
-  border:
-    1px solid
-    rgba(255,255,255,.06);
 
-}
+    .stat-label {
+      margin-top: 4px;
 
+      color: #555f67;
 
-.stat-number {
+      font-size: 8px;
+      font-weight: 800;
 
-  font-size:
-    19px;
+      letter-spacing: 0.8px;
 
-  font-weight:
-    800;
+      text-transform: uppercase;
+    }
 
-}
 
+    /* =================================================
+       LOADING
+    ================================================= */
 
-.stat-label {
+    #loading {
+      position: fixed;
 
-  margin-top:
-    3px;
+      inset: 0;
 
-  color:
-    #71869b;
+      z-index: 9999;
 
-  font-size:
-    9px;
+      display: none;
 
-  font-weight:
-    700;
+      align-items: center;
+      justify-content: center;
 
-}
+      padding: 25px;
 
+      background:
+        rgba(3,6,8,0.72);
 
-/* ==================================================
-   LOADING
-================================================== */
+      backdrop-filter:
+        blur(14px);
 
-#loading {
+      -webkit-backdrop-filter:
+        blur(14px);
+    }
 
-  position:
-    fixed;
 
-  inset:
-    0;
+    .loading-box {
+      width: 180px;
 
-  z-index:
-    1000;
+      padding: 25px 20px;
 
-  display:
-    none;
+      text-align: center;
 
-  align-items:
-    center;
+      border-radius: 22px;
 
-  justify-content:
-    center;
+      background:
+        rgba(18,23,27,0.95);
 
-  background:
-    rgba(0,0,0,.70);
+      border:
+        1px solid
+        rgba(255,255,255,0.08);
 
-  backdrop-filter:
-    blur(8px);
+      box-shadow:
+        0 25px 60px
+        rgba(0,0,0,0.45);
+    }
 
-}
 
+    .loading-spinner {
+      width: 30px;
+      height: 30px;
 
-.loading-box {
+      margin:
+        0 auto 14px;
 
-  width:
-    180px;
+      border-radius: 50%;
 
-  padding:
-    22px;
+      border:
+        3px solid
+        rgba(0,255,136,0.15);
 
-  text-align:
-    center;
+      border-top-color:
+        #00ff88;
 
-  border-radius:
-    18px;
+      animation:
+        spin 0.75s linear infinite;
+    }
 
-  background:
-    rgba(16,28,42,.95);
 
-  border:
-    1px solid
-    rgba(255,255,255,.10);
+    .loading-text {
+      color: #dbe2e6;
 
-}
+      font-size: 11px;
+      font-weight: 700;
+    }
 
 
-.spinner {
+    @keyframes spin {
 
-  width:
-    32px;
+      to {
+        transform:
+          rotate(360deg);
+      }
 
-  height:
-    32px;
+    }
 
-  margin:
-    0 auto 12px;
 
-  border:
-    3px solid
-    rgba(255,255,255,.15);
+    /* =================================================
+       FOOTER
+    ================================================= */
 
-  border-top-color:
-    #38e979;
+    .footer {
+      padding:
+        0 20px 25px;
 
-  border-radius:
-    50%;
+      text-align: center;
 
-  animation:
-    spin .7s linear infinite;
+      color: #343c42;
 
-}
+      font-size: 8px;
 
+      letter-spacing: 1px;
 
-.loading-text {
+      text-transform: uppercase;
+    }
 
-  color:
-    #d8e2eb;
 
-  font-size:
-    12px;
+    /* =================================================
+       RESPONSIVE
+    ================================================= */
 
-  font-weight:
-    700;
+    @media (max-height: 700px) {
 
-}
+      .scanner-card {
+        height: 320px;
+      }
 
+      .header {
+        padding-top:
+          calc(env(safe-area-inset-top) + 12px);
+      }
 
-@keyframes spin {
+    }
 
-  to {
 
-    transform:
-      rotate(360deg);
+    @media (min-width: 600px) {
 
-  }
+      .app {
+        margin-top: 20px;
 
-}
+        border-radius: 30px;
 
+        overflow: hidden;
 
-/* ==================================================
-   FOOTER
-================================================== */
+        min-height:
+          calc(100vh - 40px);
+      }
 
-.footer {
+    }
 
-  padding:
-    18px 0 10px;
-
-  text-align:
-    center;
-
-  color:
-    #52677c;
-
-  font-size:
-    9px;
-
-}
-
-</style>
+  </style>
 
 </head>
 
@@ -861,270 +905,391 @@ button:active {
 <body>
 
 
-<div class="app">
+  <main class="app">
 
 
-  <!-- HEADER -->
+    <!-- =============================================
+         HEADER
+    ============================================== -->
 
-  <div class="header">
+    <header class="header">
 
-    <div>
+      <div class="brand">
 
-      <div class="brand-title">
-        AP Scanner
+        <div class="brand-icon">
+          AP
+        </div>
+
+        <div class="brand-text">
+
+          <h1>AP Scanner</h1>
+
+          <span>
+            Filling Document System
+          </span>
+
+        </div>
+
       </div>
 
-      <div class="brand-subtitle">
-        Filling Document System
+
+      <div class="online">
+
+        <span class="online-dot"></span>
+
+        READY
+
       </div>
 
-    </div>
+    </header>
 
 
-    <div class="online">
+    <!-- =============================================
+         STEP
+    ============================================== -->
 
-      <span class="online-dot"></span>
+    <section class="step-area">
 
-      ONLINE
+      <div class="step-card">
 
-    </div>
+        <div
+          class="step active"
+          id="step1"
+        >
 
-  </div>
+          <div class="step-number">
+            1
+          </div>
 
+          <span>
+            NOMOR
+          </span>
 
-  <!-- STEPS -->
-
-  <div class="steps">
-
-    <div
-      class="step active"
-      id="step1"
-    >
-
-      01<br>
-      NOMOR AP
-
-    </div>
+        </div>
 
 
-    <div
-      class="step"
-      id="step2"
-    >
-
-      02<br>
-      VENDOR
-
-    </div>
+        <div class="step-line"></div>
 
 
-    <div
-      class="step"
-      id="step3"
-    >
+        <div
+          class="step"
+          id="step2"
+        >
 
-      03<br>
-      SELESAI
+          <div class="step-number">
+            2
+          </div>
 
-    </div>
+          <span>
+            VENDOR
+          </span>
 
-  </div>
-
-
-  <!-- SCANNER -->
-
-  <div class="scanner-card">
-
-    <video
-      id="video"
-      autoplay
-      muted
-      playsinline
-    ></video>
+        </div>
 
 
-    <div
-      class="camera-overlay"
-    ></div>
+        <div class="step-line"></div>
 
 
-    <div
-      class="scan-label"
-      id="scanLabel"
-    >
-      ARAHKAN NOMOR AP KE SINI
-    </div>
+        <div
+          class="step"
+          id="step3"
+        >
+
+          <div class="step-number">
+            ✓
+          </div>
+
+          <span>
+            SELESAI
+          </span>
+
+        </div>
+
+      </div>
+
+    </section>
 
 
-    <div
-      class="scan-frame"
-      id="scanFrame"
-    ></div>
+    <!-- =============================================
+         SCANNER
+    ============================================== -->
 
-  </div>
-
-
-  <!-- RESULT -->
-
-  <div class="result-card">
+    <section class="scanner-card">
 
 
-    <div class="result-row">
+      <video
+        id="video"
+        autoplay
+        playsinline
+        muted
+      ></video>
 
-      <span class="result-label">
-        NOMOR DOKUMEN
-      </span>
 
-      <span
-        class="result-value"
-        id="hasil"
+      <div class="camera-overlay"></div>
+
+
+      <div
+        class="scan-label"
+        id="scanLabel"
       >
-        -
-      </span>
-
-    </div>
+        ARAHKAN NOMOR DOKUMEN KE SINI
+      </div>
 
 
-    <div class="result-row">
-
-      <span class="result-label">
-        VENDOR
-      </span>
-
-      <span
-        class="result-value"
-        id="vendor"
-      >
-        -
-      </span>
-
-    </div>
+      <div
+        class="scan-frame"
+        id="scanFrame"
+      ></div>
 
 
-    <div class="result-row">
+      <div class="camera-tip">
+        Pastikan tulisan terlihat jelas di dalam frame
+      </div>
 
-      <span class="result-label">
-        STATUS
-      </span>
 
-      <span
-        class="result-value"
+    </section>
+
+
+    <!-- =============================================
+         RESULT
+    ============================================== -->
+
+    <section class="result-card">
+
+      <div class="result-title">
+        Document Information
+      </div>
+
+
+      <div class="result-row">
+
+        <div class="result-icon">
+          #
+        </div>
+
+        <div class="result-info">
+
+          <div class="result-label">
+            Nomor Dokumen
+          </div>
+
+          <div
+            class="result-value"
+            id="hasil"
+          >
+            -
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <div class="result-row">
+
+        <div class="result-icon">
+          V
+        </div>
+
+        <div class="result-info">
+
+          <div class="result-label">
+            Vendor
+          </div>
+
+          <div
+            class="result-value"
+            id="vendor"
+          >
+            -
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <div
         id="status"
       >
         Siap scan
-      </span>
+      </div>
 
-    </div>
-
-
-  </div>
+    </section>
 
 
-  <!-- SCAN -->
+    <!-- =============================================
+         BUTTON
+    ============================================== -->
 
-  <button
-    id="scanButton"
-  >
-    📷 SCAN NOMOR AP
-  </button>
+    <section class="button-area">
 
-
-  <!-- RESET -->
-
-  <button
-    id="resetButton"
-    class="reset"
-  >
-    ↻ RESET
-  </button>
-
-
-  <!-- STATS -->
-
-  <div class="stats">
-
-
-    <div class="stat">
-
-      <div
-        class="stat-number"
-        id="scanned"
+      <button
+        id="scanButton"
+        type="button"
       >
-        0
-      </div>
-
-      <div class="stat-label">
-        SCANNED
-      </div>
-
-    </div>
+        📷 SCAN NOMOR
+      </button>
 
 
-    <div class="stat">
-
-      <div
-        class="stat-number"
-        id="berhasil"
+      <button
+        id="resetButton"
+        type="button"
+        onclick="resetScanner()"
       >
-        0
+        ↻ SCAN DOKUMEN BARU
+      </button>
+
+    </section>
+
+
+    <!-- =============================================
+         STATS
+    ============================================== -->
+
+    <section class="stats">
+
+      <div class="stat-card">
+
+        <div
+          class="stat-number"
+          id="scanned"
+        >
+          0
+        </div>
+
+        <div class="stat-label">
+          Scanned
+        </div>
+
       </div>
 
-      <div class="stat-label">
-        BERHASIL
+
+      <div class="stat-card">
+
+        <div
+          class="stat-number"
+          id="berhasil"
+        >
+          0
+        </div>
+
+        <div class="stat-label">
+          Berhasil
+        </div>
+
+      </div>
+
+
+      <div class="stat-card">
+
+        <div
+          class="stat-number"
+          id="duplicate"
+        >
+          0
+        </div>
+
+        <div class="stat-label">
+          Duplikat
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <div class="footer">
+      AP Scanner • Fast Filling System
+    </div>
+
+
+  </main>
+
+
+  <!-- =============================================
+       LOADING
+  ============================================== -->
+
+  <div id="loading">
+
+    <div class="loading-box">
+
+      <div class="loading-spinner"></div>
+
+      <div class="loading-text">
+        Membaca dokumen...
       </div>
 
     </div>
 
-
-    <div class="stat">
-
-      <div
-        class="stat-number"
-        id="duplicate"
-      >
-        0
-      </div>
-
-      <div class="stat-label">
-        DUPLICATE
-      </div>
-
-    </div>
-
-
   </div>
 
 
-  <div class="footer">
+  <!-- =============================================
+       SCRIPT
+  ============================================== -->
 
-    AP Scanner • Filling Document System
-
-  </div>
-
-
-</div>
+  <script src="script.js?v=5"></script>
 
 
-<!-- ==================================================
-     LOADING
-================================================== -->
+  <script>
 
-<div id="loading">
+    /*
+     * Update tampilan step secara otomatis
+     * tanpa mengganggu logic scanner.
+     */
 
-  <div class="loading-box">
+    const stepObserver =
+      new MutationObserver(() => {
 
-    <div class="spinner"></div>
+        const hasil =
+          document.getElementById("hasil");
 
-    <div class="loading-text">
-      Memproses...
-    </div>
+        const step1 =
+          document.getElementById("step1");
 
-  </div>
+        const step2 =
+          document.getElementById("step2");
 
-</div>
+        const step3 =
+          document.getElementById("step3");
 
 
-<script src="script.js?v=10"></script>
+        if (
+          hasil &&
+          hasil.textContent !== "-"
+        ) {
+
+          step1.classList.remove("active");
+
+          step1.classList.add("done");
+
+          step2.classList.add("active");
+
+        }
+
+      });
+
+
+    const hasilElement =
+      document.getElementById("hasil");
+
+
+    if (hasilElement) {
+
+      stepObserver.observe(
+        hasilElement,
+        {
+          childList: true,
+          subtree: true,
+          characterData: true
+        }
+      );
+
+    }
+
+  </script>
 
 
 </body>
