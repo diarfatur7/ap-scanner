@@ -2,7 +2,15 @@
  * AP SCANNER
  * FRONTEND
  *
- * OCR = EXACT GREEN FRAME
+ * FLOW:
+ *
+ * SCAN NOMOR AP
+ *      ↓
+ * SCAN VENDOR
+ *      ↓
+ * FINALIZE
+ *      ↓
+ * GOOGLE SHEET
  ****************************************************/
 
 
@@ -28,72 +36,48 @@ let vendor = "";
 ================================================== */
 
 const video =
-  document.getElementById(
-    "video"
-  );
+  document.getElementById("video");
 
 const scanButton =
-  document.getElementById(
-    "scanButton"
-  );
+  document.getElementById("scanButton");
 
 const resetButton =
-  document.getElementById(
-    "resetButton"
-  );
+  document.getElementById("resetButton");
 
 const hasil =
-  document.getElementById(
-    "hasil"
-  );
+  document.getElementById("hasil");
 
 const vendorElement =
-  document.getElementById(
-    "vendor"
-  );
+  document.getElementById("vendor");
 
 const statusElement =
-  document.getElementById(
-    "status"
-  );
+  document.getElementById("status");
 
 const scanLabel =
-  document.getElementById(
-    "scanLabel"
-  );
+  document.getElementById("scanLabel");
 
 
 /* ==================================================
    LOADING
 ================================================== */
 
-function setLoading(
-  active,
-  text
-) {
+function setLoading(active, text) {
 
   const loading =
-    document.getElementById(
-      "loading"
-    );
-
+    document.getElementById("loading");
 
   if (!loading) {
     return;
   }
 
-
   if (active) {
 
-    loading.style.display =
-      "flex";
-
+    loading.style.display = "flex";
 
     const loadingText =
       loading.querySelector(
         ".loading-text"
       );
-
 
     if (
       loadingText &&
@@ -102,16 +86,13 @@ function setLoading(
 
       loadingText.textContent =
         text;
-
     }
 
   } else {
 
     loading.style.display =
       "none";
-
   }
-
 }
 
 
@@ -129,12 +110,9 @@ async function startCamera() {
         .getTracks()
         .forEach(
           function(track) {
-
             track.stop();
-
           }
         );
-
     }
 
 
@@ -163,7 +141,6 @@ async function startCamera() {
           },
 
           audio: false
-
         });
 
 
@@ -189,27 +166,23 @@ async function startCamera() {
       error
     );
 
-
     alert(
       "Kamera tidak dapat digunakan."
     );
-
   }
-
 }
 
 
 /* ==================================================
-   EXACT GREEN FRAME CROP
+   CAPTURE CROP
 ================================================== */
 
-function captureCrop() {
+function captureCrop(mode) {
 
   const video =
     document.getElementById(
       "video"
     );
-
 
   const frame =
     document.getElementById(
@@ -227,13 +200,11 @@ function captureCrop() {
     );
 
     return null;
-
   }
 
 
   const videoWidth =
     video.videoWidth;
-
 
   const videoHeight =
     video.videoHeight;
@@ -249,232 +220,140 @@ function captureCrop() {
     );
 
     return null;
-
   }
 
 
-  /*
-   * =================================================
-   * RECT VIDEO DI LAYAR
-   * =================================================
-   */
-
   const videoRect =
     video.getBoundingClientRect();
-
-
-  /*
-   * RECT FRAME HIJAU DI LAYAR
-   */
 
   const frameRect =
     frame.getBoundingClientRect();
 
 
   /*
-   * =================================================
-   * HITUNG OBJECT-FIT: COVER
-   * =================================================
+   * VIDEO SEKARANG OBJECT-FIT: FILL
+   *
+   * Jadi koordinat layar
+   * dapat dipetakan langsung
+   * ke koordinat video asli.
    */
 
-  const videoRatio =
-    videoWidth /
-    videoHeight;
-
-
-  const displayWidth =
-    videoRect.width;
-
-
-  const displayHeight =
-    videoRect.height;
-
-
-  const displayRatio =
-    displayWidth /
-    displayHeight;
-
-
-  let renderedWidth;
-
-  let renderedHeight;
-
-  let offsetX;
-
-  let offsetY;
-
-
-  if (
-    videoRatio >
-    displayRatio
-  ) {
-
-    /*
-     * Video lebih lebar.
-     * Sisi kiri/kanan terpotong.
-     */
-
-    renderedHeight =
-      displayHeight;
-
-
-    renderedWidth =
-      renderedHeight *
-      videoRatio;
-
-
-    offsetX =
-      (
-        renderedWidth -
-        displayWidth
-      ) / 2;
-
-
-    offsetY = 0;
-
-  } else {
-
-    /*
-     * Video lebih tinggi.
-     * Atas/bawah terpotong.
-     */
-
-    renderedWidth =
-      displayWidth;
-
-
-    renderedHeight =
-      renderedWidth /
-      videoRatio;
-
-
-    offsetX = 0;
-
-
-    offsetY =
-      (
-        renderedHeight -
-        displayHeight
-      ) / 2;
-
-  }
-
-
-  /*
-   * =================================================
-   * POSISI FRAME RELATIF VIDEO
-   * =================================================
-   */
-
-  const frameLeft =
+  const relativeLeft =
     frameRect.left -
     videoRect.left;
 
-
-  const frameTop =
+  const relativeTop =
     frameRect.top -
     videoRect.top;
 
 
+  const scaleX =
+    videoWidth /
+    videoRect.width;
+
+  const scaleY =
+    videoHeight /
+    videoRect.height;
+
+
+  let sx =
+    relativeLeft *
+    scaleX;
+
+  let sy =
+    relativeTop *
+    scaleY;
+
+  let sw =
+    frameRect.width *
+    scaleX;
+
+  let sh =
+    frameRect.height *
+    scaleY;
+
+
   /*
-   * =================================================
-   * KONVERSI FRAME → KOORDINAT VIDEO ASLI
-   * =================================================
+   * ZOOM CROP
+   *
+   * Nomor AP dibuat lebih besar
+   * agar OCR lebih mudah membaca.
    */
 
-  const sourceX =
-    (
-      frameLeft +
-      offsetX
-    ) /
-    renderedWidth *
-    videoWidth;
+  const zoom =
+    mode === "number"
+      ? 1.8
+      : 1.25;
 
 
-  const sourceY =
-    (
-      frameTop +
-      offsetY
-    ) /
-    renderedHeight *
-    videoHeight;
+  const centerX =
+    sx + sw / 2;
+
+  const centerY =
+    sy + sh / 2;
 
 
-  const sourceWidth =
-    frameRect.width /
-    renderedWidth *
-    videoWidth;
+  sw =
+    sw / zoom;
+
+  sh =
+    sh / zoom;
 
 
-  const sourceHeight =
-    frameRect.height /
-    renderedHeight *
-    videoHeight;
+  sx =
+    centerX - sw / 2;
+
+  sy =
+    centerY - sh / 2;
 
 
   /*
-   * =================================================
    * CLAMP
-   * =================================================
    */
 
-  const sx =
+  sx =
     Math.max(
       0,
       Math.min(
         videoWidth - 1,
-        Math.round(sourceX)
+        sx
       )
     );
 
-
-  const sy =
+  sy =
     Math.max(
       0,
       Math.min(
         videoHeight - 1,
-        Math.round(sourceY)
+        sy
       )
     );
 
-
-  const sw =
-    Math.max(
-      1,
-      Math.min(
-        videoWidth - sx,
-        Math.round(sourceWidth)
-      )
+  sw =
+    Math.min(
+      sw,
+      videoWidth - sx
     );
 
-
-  const sh =
-    Math.max(
-      1,
-      Math.min(
-        videoHeight - sy,
-        Math.round(sourceHeight)
-      )
+  sh =
+    Math.min(
+      sh,
+      videoHeight - sy
     );
 
 
   /*
-   * =================================================
-   * OUTPUT SIZE
-   * =================================================
-   *
-   * 600px lebih aman untuk angka kecil.
+   * OUTPUT
    */
 
   const MAX_WIDTH = 600;
 
 
   let outputWidth =
-    sw;
-
+    Math.round(sw);
 
   let outputHeight =
-    sh;
+    Math.round(sh);
 
 
   if (
@@ -486,27 +365,22 @@ function captureCrop() {
       MAX_WIDTH /
       outputWidth;
 
-
     outputWidth =
       Math.round(
         outputWidth *
         ratio
       );
 
-
     outputHeight =
       Math.round(
         outputHeight *
         ratio
       );
-
   }
 
 
   /*
-   * =================================================
    * CANVAS
-   * =================================================
    */
 
   const canvas =
@@ -514,10 +388,8 @@ function captureCrop() {
       "canvas"
     );
 
-
   canvas.width =
     outputWidth;
-
 
   canvas.height =
     outputHeight;
@@ -533,40 +405,117 @@ function captureCrop() {
 
 
   /*
-   * =================================================
    * CROP
-   *
-   * HANYA AREA DALAM FRAME HIJAU
-   * =================================================
    */
 
   ctx.drawImage(
 
     video,
 
-    sx,
-    sy,
-    sw,
-    sh,
+    Math.round(sx),
+    Math.round(sy),
+
+    Math.round(sw),
+    Math.round(sh),
 
     0,
     0,
+
     outputWidth,
     outputHeight
-
   );
 
 
   /*
-   * =================================================
-   * JPEG
-   * =================================================
+   * NUMBER:
+   * GRAYSCALE + CONTRAST
    */
+
+  if (
+    mode === "number"
+  ) {
+
+    const image =
+      ctx.getImageData(
+        0,
+        0,
+        outputWidth,
+        outputHeight
+      );
+
+    const data =
+      image.data;
+
+
+    const contrast =
+      1.35;
+
+    const factor =
+      (259 * (contrast + 255)) /
+      (255 * (259 - contrast));
+
+
+    for (
+      let i = 0;
+      i < data.length;
+      i += 4
+    ) {
+
+      const gray =
+        0.299 * data[i] +
+        0.587 * data[i + 1] +
+        0.114 * data[i + 2];
+
+
+      let value =
+        factor *
+          (gray - 128) +
+        128;
+
+
+      value =
+        Math.max(
+          0,
+          Math.min(
+            255,
+            value
+          )
+        );
+
+
+      data[i] =
+        value;
+
+      data[i + 1] =
+        value;
+
+      data[i + 2] =
+        value;
+    }
+
+
+    ctx.putImageData(
+      image,
+      0,
+      0
+    );
+  }
+
+
+  /*
+   * JPEG
+   */
+
+  const quality =
+    mode === "number"
+      ? 0.58
+      : 0.50;
+
 
   const imageData =
     canvas.toDataURL(
       "image/jpeg",
-      0.50
+      quality
     );
 
 
@@ -575,63 +524,62 @@ function captureCrop() {
    */
 
   console.log(
-    "========== EXACT OCR FRAME =========="
+    "========== OCR CROP =========="
   );
 
+  console.log(
+    "MODE:",
+    mode
+  );
 
   console.log(
-    "Video asli:",
-    videoWidth +
-    " x " +
+    "VIDEO:",
+    videoWidth,
+    "x",
     videoHeight
   );
 
-
   console.log(
-    "Frame layar:",
-    Math.round(frameRect.width) +
-    " x " +
-    Math.round(frameRect.height)
+    "FRAME:",
+    Math.round(
+      frameRect.width
+    ),
+    "x",
+    Math.round(
+      frameRect.height
+    )
   );
 
-
   console.log(
-    "Crop video:",
-    sx +
-    ", " +
-    sy +
-    " / " +
-    sw +
-    " x " +
-    sh
+    "CROP:",
+    Math.round(sx),
+    Math.round(sy),
+    Math.round(sw),
+    Math.round(sh)
   );
 
-
   console.log(
-    "Output OCR:",
-    outputWidth +
-    " x " +
+    "OUTPUT:",
+    outputWidth,
+    "x",
     outputHeight
   );
 
-
   console.log(
-    "Image size:",
+    "IMAGE:",
     Math.round(
       imageData.length /
       1024
-    ) +
-    " KB"
+    ),
+    "KB"
   );
 
-
   console.log(
-    "======================================"
+    "=============================="
   );
 
 
   return imageData;
-
 }
 
 
@@ -653,14 +601,12 @@ async function sendOCR(
       WEBAPP_URL,
       {
 
-        method:
-          "POST",
+        method: "POST",
 
         headers: {
 
           "Content-Type":
             "text/plain;charset=utf-8"
-
         },
 
         body:
@@ -673,20 +619,16 @@ async function sendOCR(
               image
 
           })
-
       }
     );
 
 
-  if (
-    !response.ok
-  ) {
+  if (!response.ok) {
 
     throw new Error(
       "HTTP " +
       response.status
     );
-
   }
 
 
@@ -706,7 +648,6 @@ async function sendOCR(
     time + " ms"
   );
 
-
   console.log(
     "OCR RESULT:",
     result
@@ -714,7 +655,6 @@ async function sendOCR(
 
 
   return result;
-
 }
 
 
@@ -733,7 +673,9 @@ async function scanNomor() {
 
 
     const image =
-      captureCrop();
+      captureCrop(
+        "number"
+      );
 
 
     if (!image) {
@@ -741,7 +683,6 @@ async function scanNomor() {
       throw new Error(
         "Gambar gagal diambil"
       );
-
     }
 
 
@@ -751,10 +692,6 @@ async function scanNomor() {
         "number"
       );
 
-
-    /*
-     * BERHASIL
-     */
 
     if (
       result.success &&
@@ -790,7 +727,6 @@ async function scanNomor() {
 
         scanLabel.textContent =
           "ARAHKAN NAMA VENDOR KE SINI";
-
       }
 
 
@@ -799,7 +735,6 @@ async function scanNomor() {
 
 
       setFrameVendor();
-
 
       updateSteps();
 
@@ -817,7 +752,6 @@ async function scanNomor() {
 
 
       beepError();
-
     }
 
 
@@ -832,14 +766,11 @@ async function scanNomor() {
     statusElement.textContent =
       "OCR gagal — coba lagi";
 
+
   } finally {
 
-    setLoading(
-      false
-    );
-
+    setLoading(false);
   }
-
 }
 
 
@@ -858,7 +789,9 @@ async function scanVendor() {
 
 
     const image =
-      captureCrop();
+      captureCrop(
+        "vendor"
+      );
 
 
     if (!image) {
@@ -866,7 +799,6 @@ async function scanVendor() {
       throw new Error(
         "Gambar gagal diambil"
       );
-
     }
 
 
@@ -909,7 +841,6 @@ async function scanVendor() {
 
 
       beepError();
-
     }
 
 
@@ -924,14 +855,11 @@ async function scanVendor() {
     statusElement.textContent =
       "OCR vendor gagal";
 
+
   } finally {
 
-    setLoading(
-      false
-    );
-
+    setLoading(false);
   }
-
 }
 
 
@@ -954,14 +882,12 @@ async function finalizeDocument() {
         WEBAPP_URL,
         {
 
-          method:
-            "POST",
+          method: "POST",
 
           headers: {
 
             "Content-Type":
               "text/plain;charset=utf-8"
-
           },
 
           body:
@@ -977,20 +903,16 @@ async function finalizeDocument() {
                 vendor
 
             })
-
         }
       );
 
 
-    if (
-      !response.ok
-    ) {
+    if (!response.ok) {
 
       throw new Error(
         "HTTP " +
         response.status
       );
-
     }
 
 
@@ -1030,9 +952,7 @@ async function finalizeDocument() {
 
       updateSteps();
 
-
       return;
-
     }
 
 
@@ -1062,14 +982,13 @@ async function finalizeDocument() {
 
       updateSteps();
 
-
       return;
-
     }
 
 
     statusElement.textContent =
       "Gagal menyimpan";
+
 
   } catch (error) {
 
@@ -1082,14 +1001,11 @@ async function finalizeDocument() {
     statusElement.textContent =
       "Gagal menyimpan";
 
+
   } finally {
 
-    setLoading(
-      false
-    );
-
+    setLoading(false);
   }
-
 }
 
 
@@ -1113,18 +1029,21 @@ function setFrameNumber() {
 
   if (frame) {
 
+    /*
+     * FINAL
+     */
+
     frame.style.left =
-      "17%";
+      "7%";
 
     frame.style.right =
-      "17%";
+      "7%";
 
     frame.style.top =
-      "38%";
+      "36%";
 
     frame.style.height =
-      "18%";
-
+      "28%";
   }
 
 
@@ -1132,9 +1051,7 @@ function setFrameNumber() {
 
     label.textContent =
       "ARAHKAN NOMOR AP KE SINI";
-
   }
-
 }
 
 
@@ -1169,7 +1086,6 @@ function setFrameVendor() {
 
     frame.style.height =
       "20%";
-
   }
 
 
@@ -1177,9 +1093,7 @@ function setFrameVendor() {
 
     label.textContent =
       "ARAHKAN NAMA VENDOR KE SINI";
-
   }
-
 }
 
 
@@ -1209,6 +1123,7 @@ function updateSteps() {
     step1,
     step2,
     step3
+
   ].forEach(
     function(step) {
 
@@ -1218,9 +1133,7 @@ function updateSteps() {
           "active",
           "done"
         );
-
       }
-
     }
   );
 
@@ -1234,9 +1147,7 @@ function updateSteps() {
       step1.classList.add(
         "active"
       );
-
     }
-
   }
 
 
@@ -1249,7 +1160,6 @@ function updateSteps() {
       step1.classList.add(
         "done"
       );
-
     }
 
 
@@ -1258,9 +1168,7 @@ function updateSteps() {
       step2.classList.add(
         "active"
       );
-
     }
-
   }
 
 
@@ -1273,7 +1181,6 @@ function updateSteps() {
       step1.classList.add(
         "done"
       );
-
     }
 
 
@@ -1282,7 +1189,6 @@ function updateSteps() {
       step2.classList.add(
         "done"
       );
-
     }
 
 
@@ -1291,11 +1197,8 @@ function updateSteps() {
       step3.classList.add(
         "active"
       );
-
     }
-
   }
-
 }
 
 
@@ -1316,7 +1219,6 @@ function resetScanner() {
 
     hasil.textContent =
       "-";
-
   }
 
 
@@ -1324,7 +1226,6 @@ function resetScanner() {
 
     vendorElement.textContent =
       "-";
-
   }
 
 
@@ -1332,7 +1233,6 @@ function resetScanner() {
 
     statusElement.textContent =
       "Siap scan";
-
   }
 
 
@@ -1340,14 +1240,12 @@ function resetScanner() {
 
     scanButton.textContent =
       "📷 SCAN NOMOR AP";
-
   }
 
 
   setFrameNumber();
 
   updateSteps();
-
 }
 
 
@@ -1355,9 +1253,7 @@ function resetScanner() {
    STATS
 ================================================== */
 
-function updateStats(
-  type
-) {
+function updateStats(type) {
 
   const element =
     document.getElementById(
@@ -1380,7 +1276,6 @@ function updateStats(
 
   element.textContent =
     current + 1;
-
 }
 
 
@@ -1440,14 +1335,13 @@ function beep() {
       0.08
     );
 
+
   } catch (error) {
 
     console.log(
       "Beep unavailable"
     );
-
   }
-
 }
 
 
@@ -1507,8 +1401,8 @@ function beepError() {
       0.15
     );
 
-  } catch (error) {}
 
+  } catch (error) {}
 }
 
 
@@ -1525,9 +1419,7 @@ function vibrate() {
     navigator.vibrate(
       80
     );
-
   }
-
 }
 
 
@@ -1560,12 +1452,10 @@ if (scanButton) {
       else {
 
         resetScanner();
-
       }
 
     }
   );
-
 }
 
 
@@ -1579,7 +1469,6 @@ if (resetButton) {
 
     }
   );
-
 }
 
 
