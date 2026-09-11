@@ -1,7 +1,15 @@
 /*************************************************
- * AP SCANNER 2X
+ * AP SCANNER 2X SCAN
  *************************************************/
 
+console.log(
+  "AP SCANNER 2X VERSION 3 AKTIF"
+);
+
+
+/*************************************************
+ * GOOGLE APPS SCRIPT
+ *************************************************/
 
 const WEBAPP_URL =
   "https://script.google.com/macros/s/AKfycbzg0Q5slomCGANi1AD6G4PRNmBOH154c7CZnjqosoU5O6znIlXcxKm3tytai6uD-wjcnA/exec";
@@ -82,40 +90,37 @@ const duplikatElement =
  *************************************************/
 
 /*
- * 1 = scan nomor
- * 2 = scan vendor
+ * 1 = nomor
+ * 2 = vendor
  * 3 = selesai
  */
 
-let currentStep = 1;
+let currentStep =
+  1;
 
 
-/*
- * Hasil scan pertama
- */
-let nomorDokumen = "";
+let nomorDokumen =
+  "";
 
 
-/*
- * Hasil scan kedua
- */
-let vendor = "";
+let vendor =
+  "";
 
 
-/*
- * Statistik
- */
-let scanned = 0;
-
-let berhasil = 0;
-
-let duplikat = 0;
+let scanned =
+  0;
 
 
-/*
- * Camera
- */
-let stream = null;
+let berhasil =
+  0;
+
+
+let duplikat =
+  0;
+
+
+let stream =
+  null;
 
 
 /*************************************************
@@ -178,7 +183,7 @@ async function startCamera() {
 
 
     statusElement.textContent =
-      "Kamera tidak dapat digunakan: " +
+      "Kamera gagal: " +
       error.message;
 
     statusElement.className =
@@ -190,7 +195,7 @@ async function startCamera() {
 
 
 /*************************************************
- * CAPTURE
+ * CAPTURE IMAGE
  *************************************************/
 
 function captureCrop() {
@@ -222,8 +227,9 @@ function captureCrop() {
 
 
   /*
-   * Ambil hampir seluruh area
+   * Area capture luas
    */
+
   const x =
     Math.floor(
       videoWidth * 0.03
@@ -338,7 +344,9 @@ async function sendOCR(
 
   const response =
     await fetch(
+
       WEBAPP_URL,
+
       {
 
         method:
@@ -366,16 +374,17 @@ async function sendOCR(
           "follow"
 
       }
+
     );
 
 
-  const responseText =
+  const text =
     await response.text();
 
 
   console.log(
-    "SERVER RESPONSE:",
-    responseText
+    "OCR RESPONSE:",
+    text
   );
 
 
@@ -386,13 +395,13 @@ async function sendOCR(
 
     json =
       JSON.parse(
-        responseText
+        text
       );
 
   } catch (error) {
 
     throw new Error(
-      "Response server tidak valid"
+      "Response OCR tidak valid"
     );
 
   }
@@ -503,8 +512,9 @@ async function scanNomor() {
 
 
     /*******************************************
-     * SIMPAN NOMOR
+     * NOMOR BERHASIL
      *******************************************/
+
     nomorDokumen =
       json.nomor;
 
@@ -514,7 +524,7 @@ async function scanNomor() {
 
 
     statusElement.textContent =
-      "✓ Nomor ditemukan. Sekarang scan vendor.";
+      "✓ Nomor ditemukan. Lanjut scan vendor.";
 
 
     statusElement.className =
@@ -522,8 +532,9 @@ async function scanNomor() {
 
 
     /*******************************************
-     * PINDAH KE STEP 2
+     * PINDAH KE SCAN 2
      *******************************************/
+
     currentStep =
       2;
 
@@ -533,7 +544,7 @@ async function scanNomor() {
 
 
     stepDescription.textContent =
-      "Sekarang arahkan kamera ke nama vendor";
+      "Arahkan kamera ke nama vendor";
 
 
     scanLabel.textContent =
@@ -655,8 +666,9 @@ async function scanVendor() {
 
 
     /*******************************************
-     * SIMPAN VENDOR
+     * VENDOR BERHASIL
      *******************************************/
+
     vendor =
       json.vendor;
 
@@ -666,14 +678,21 @@ async function scanVendor() {
 
 
     /*******************************************
-     * FINALIZE
+     * SIMPAN
      *******************************************/
+
     statusElement.textContent =
       "Menyimpan data...";
 
 
     const result =
-      await finalize();
+      await finalizeDocument();
+
+
+    console.log(
+      "FINALIZE:",
+      result
+    );
 
 
     if (
@@ -681,7 +700,8 @@ async function scanVendor() {
     ) {
 
       statusElement.textContent =
-        result.message;
+        result.message ||
+        "Gagal menyimpan";
 
 
       statusElement.className =
@@ -696,6 +716,7 @@ async function scanVendor() {
     /*******************************************
      * DUPLIKAT
      *******************************************/
+
     if (
       result.duplicate === true
     ) {
@@ -711,7 +732,9 @@ async function scanVendor() {
         "status warning";
 
 
-    } else {
+    }
+
+    else {
 
       berhasil++;
 
@@ -738,6 +761,7 @@ async function scanVendor() {
     /*******************************************
      * SELESAI
      *******************************************/
+
     currentStep =
       3;
 
@@ -747,7 +771,7 @@ async function scanVendor() {
 
 
     stepDescription.textContent =
-      "Nomor dan vendor sudah diproses";
+      "Nomor dan vendor berhasil diproses";
 
 
     scanLabel.textContent =
@@ -777,6 +801,7 @@ async function scanVendor() {
     statusElement.className =
       "status error";
 
+
   } finally {
 
     loading.style.display =
@@ -792,16 +817,18 @@ async function scanVendor() {
 
 
 /*************************************************
- * FINALIZE
+ * FINALIZE DOCUMENT
  *
- * Simpan nomor + vendor
+ * INI TIDAK MENGIRIM IMAGE
  *************************************************/
 
-async function finalize() {
+async function finalizeDocument() {
 
   const response =
     await fetch(
+
       WEBAPP_URL,
+
       {
 
         method:
@@ -832,6 +859,7 @@ async function finalize() {
           "follow"
 
       }
+
     );
 
 
@@ -930,7 +958,7 @@ function resetScanner() {
 
 
 /*************************************************
- * STATS
+ * UPDATE STATS
  *************************************************/
 
 function updateStats() {
@@ -963,7 +991,9 @@ function beep() {
 
 
     if (!AudioContext) {
+
       return;
+
     }
 
 
@@ -1015,6 +1045,7 @@ function beep() {
     oscillator.stop(
       audio.currentTime + 0.15
     );
+
 
   } catch (error) {
 
