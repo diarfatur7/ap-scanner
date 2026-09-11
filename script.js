@@ -1,11 +1,11 @@
 /*************************************************
  * AP SCANNER FAST 2X SCAN
- * FRONTEND - GITHUB PAGES
+ * VERSION 5
  *
  * SCAN 1 = NOMOR DOKUMEN
  * SCAN 2 = VENDOR
  *
- * MODE FAST:
+ * FAST MODE
  * CAMERA 640x480
  * OUTPUT MAX 500px
  * JPEG QUALITY 35%
@@ -21,7 +21,7 @@ const WEBAPP_URL =
 
 
 console.log(
-  "AP SCANNER FAST 2X VERSION 4 AKTIF"
+  "AP SCANNER FAST 2X VERSION 5 AKTIF"
 );
 
 
@@ -125,6 +125,7 @@ async function startCamera() {
 function captureCrop() {
 
   if (
+    !video ||
     !video.videoWidth ||
     !video.videoHeight
   ) {
@@ -137,9 +138,7 @@ function captureCrop() {
 
 
   const ctx =
-    canvas.getContext(
-      "2d"
-    );
+    canvas.getContext("2d");
 
 
   const videoWidth =
@@ -152,6 +151,12 @@ function captureCrop() {
   /***********************************************
    * AREA TANGKAP
    *
+   * 5% kiri
+   * 5% kanan
+   * 27.5% atas
+   * 27.5% bawah
+   *
+   * Total:
    * 90% lebar
    * 45% tinggi
    ***********************************************/
@@ -170,7 +175,7 @@ function captureCrop() {
 
 
   /***********************************************
-   * OUTPUT MAX 500 PX
+   * MAX OUTPUT 500 PX
    ***********************************************/
 
   const MAX_WIDTH =
@@ -204,7 +209,7 @@ function captureCrop() {
 
 
   /***********************************************
-   * DRAW
+   * DRAW CROP
    ***********************************************/
 
   ctx.drawImage(
@@ -282,6 +287,7 @@ async function sendOCR(
 
     const response =
       await fetch(
+
         WEBAPP_URL,
 
         {
@@ -395,8 +401,12 @@ async function scanNomor() {
     );
 
 
-    button.disabled =
-      true;
+    if (button) {
+
+      button.disabled =
+        true;
+
+    }
 
 
     const image =
@@ -414,6 +424,7 @@ async function scanNomor() {
 
 
     if (
+      result &&
       result.success &&
       result.nomor
     ) {
@@ -425,57 +436,111 @@ async function scanNomor() {
       successCount++;
 
 
-      document.getElementById(
-        "hasil"
-      ).textContent =
-        nomorDokumen;
+      const hasil =
+        document.getElementById(
+          "hasil"
+        );
 
 
-      document.getElementById(
-        "vendor"
-      ).textContent =
-        "-";
+      if (hasil) {
+
+        hasil.textContent =
+          nomorDokumen;
+
+      }
 
 
-      document.getElementById(
-        "status"
-      ).textContent =
-        "Nomor ditemukan";
+      const vendorElement =
+        document.getElementById(
+          "vendor"
+        );
 
 
-      /*******************************************
-       * PINDAH KE SCAN VENDOR
-       *******************************************/
+      if (vendorElement) {
+
+        vendorElement.textContent =
+          "-";
+
+      }
+
+
+      const status =
+        document.getElementById(
+          "status"
+        );
+
+
+      if (status) {
+
+        status.textContent =
+          "Nomor ditemukan";
+
+      }
+
+
+      /*****************************************
+       * PINDAH KE SCAN 2
+       *****************************************/
 
       currentStep =
         2;
 
 
-      button.textContent =
-        "📷 SCAN VENDOR";
+      if (button) {
+
+        button.textContent =
+          "📷 SCAN VENDOR";
+
+      }
 
 
-      document.getElementById(
-        "stepTitle"
-      ).textContent =
-        "SCAN 2 — VENDOR";
+      const stepTitle =
+        document.getElementById(
+          "stepTitle"
+        );
 
 
-      document.getElementById(
-        "scanLabel"
-      ).textContent =
-        "ARAHKAN NAMA VENDOR KE SINI";
+      if (stepTitle) {
+
+        stepTitle.textContent =
+          "SCAN 2 — VENDOR";
+
+      }
+
+
+      const scanLabel =
+        document.getElementById(
+          "scanLabel"
+        );
+
+
+      if (scanLabel) {
+
+        scanLabel.textContent =
+          "ARAHKAN NAMA VENDOR KE SINI";
+
+      }
 
 
       beep();
 
+      vibrate();
+
 
     } else {
 
-      document.getElementById(
-        "status"
-      ).textContent =
-        "Nomor tidak ditemukan";
+      const status =
+        document.getElementById(
+          "status"
+        );
+
+
+      if (status) {
+
+        status.textContent =
+          "Nomor tidak ditemukan";
+
+      }
 
 
       alert(
@@ -492,14 +557,23 @@ async function scanNomor() {
   } catch (error) {
 
     console.error(
+      "SCAN NOMOR ERROR:",
       error
     );
 
 
-    document.getElementById(
-      "status"
-    ).textContent =
-      "ERROR";
+    const status =
+      document.getElementById(
+        "status"
+      );
+
+
+    if (status) {
+
+      status.textContent =
+        "ERROR";
+
+    }
 
 
     alert(
@@ -510,8 +584,12 @@ async function scanNomor() {
 
   } finally {
 
-    button.disabled =
-      false;
+    if (button) {
+
+      button.disabled =
+        false;
+
+    }
 
 
     setLoading(
@@ -552,8 +630,12 @@ async function scanVendor() {
     );
 
 
-    button.disabled =
-      true;
+    if (button) {
+
+      button.disabled =
+        true;
+
+    }
 
 
     const image =
@@ -567,7 +649,11 @@ async function scanVendor() {
       );
 
 
+    scannedCount++;
+
+
     if (
+      result &&
       result.success &&
       result.vendor
     ) {
@@ -576,31 +662,58 @@ async function scanVendor() {
         result.vendor;
 
 
-      document.getElementById(
-        "vendor"
-      ).textContent =
-        vendor;
+      successCount++;
 
 
-      document.getElementById(
-        "status"
-      ).textContent =
-        "Vendor ditemukan";
+      const vendorElement =
+        document.getElementById(
+          "vendor"
+        );
 
 
-      /*******************************************
-       * SIMPAN
-       *******************************************/
+      if (vendorElement) {
+
+        vendorElement.textContent =
+          vendor;
+
+      }
+
+
+      const status =
+        document.getElementById(
+          "status"
+        );
+
+
+      if (status) {
+
+        status.textContent =
+          "Vendor ditemukan";
+
+      }
+
+
+      /*****************************************
+       * SIMPAN OTOMATIS
+       *****************************************/
 
       await finalizeDocument();
 
 
     } else {
 
-      document.getElementById(
-        "status"
-      ).textContent =
-        "Vendor tidak ditemukan";
+      const status =
+        document.getElementById(
+          "status"
+        );
+
+
+      if (status) {
+
+        status.textContent =
+          "Vendor tidak ditemukan";
+
+      }
 
 
       alert(
@@ -611,17 +724,29 @@ async function scanVendor() {
     }
 
 
+    updateStats();
+
+
   } catch (error) {
 
     console.error(
+      "SCAN VENDOR ERROR:",
       error
     );
 
 
-    document.getElementById(
-      "status"
-    ).textContent =
-      "ERROR";
+    const status =
+      document.getElementById(
+        "status"
+      );
+
+
+    if (status) {
+
+      status.textContent =
+        "ERROR";
+
+      }
 
 
     alert(
@@ -632,8 +757,12 @@ async function scanVendor() {
 
   } finally {
 
-    button.disabled =
-      false;
+    if (button) {
+
+      button.disabled =
+        false;
+
+    }
 
 
     setLoading(
@@ -646,14 +775,24 @@ async function scanVendor() {
 
 
 /*************************************************
- * FINALIZE DOCUMENT
+ * FINALIZE / SAVE
  *************************************************/
 
 async function finalizeDocument() {
 
   console.log(
-    "FINALIZE:",
-    nomorDokumen,
+    "===== FINALIZE ====="
+  );
+
+
+  console.log(
+    "Nomor:",
+    nomorDokumen
+  );
+
+
+  console.log(
+    "Vendor:",
     vendor
   );
 
@@ -725,82 +864,108 @@ async function finalizeDocument() {
 
 
     if (
-      result.success
+      !result.success
     ) {
-
-      if (
-        result.duplicate
-      ) {
-
-        duplicateCount++;
-
-
-        document.getElementById(
-          "status"
-        ).textContent =
-          "DUPLIKAT";
-
-
-        alert(
-          "Nomor dokumen sudah pernah masuk filling."
-        );
-
-
-      } else {
-
-        successCount++;
-
-
-        document.getElementById(
-          "status"
-        ).textContent =
-          "SUDAH MASUK FILLING";
-
-
-        beep();
-
-
-        vibrate();
-
-
-      }
-
-
-      updateStats();
-
-
-      /*****************************************
-       * SELESAI
-       *****************************************/
-
-      currentStep =
-        3;
-
-
-      document.getElementById(
-        "scanButton"
-      ).textContent =
-        "📷 SCAN DOKUMEN BARU";
-
-
-      document.getElementById(
-        "scanButton"
-      ).onclick =
-        resetScanner;
-
-
-      document.getElementById(
-        "resetButton"
-      ).style.display =
-        "block";
-
-
-    } else {
 
       throw new Error(
         result.message ||
         "Gagal menyimpan dokumen"
       );
+
+    }
+
+
+    /*********************************************
+     * DUPLICATE
+     *********************************************/
+
+    if (
+      result.duplicate
+    ) {
+
+      duplicateCount++;
+
+
+      const status =
+        document.getElementById(
+          "status"
+        );
+
+
+      if (status) {
+
+        status.textContent =
+          "DUPLIKAT";
+
+      }
+
+
+      alert(
+        "Nomor dokumen sudah pernah masuk filling."
+      );
+
+
+    } else {
+
+      const status =
+        document.getElementById(
+          "status"
+        );
+
+
+      if (status) {
+
+        status.textContent =
+          "SUDAH MASUK FILLING";
+
+      }
+
+
+      beep();
+
+      vibrate();
+
+    }
+
+
+    updateStats();
+
+
+    /*********************************************
+     * SELESAI
+     *********************************************/
+
+    currentStep =
+      3;
+
+
+    const button =
+      document.getElementById(
+        "scanButton"
+      );
+
+
+    if (button) {
+
+      button.textContent =
+        "📷 SCAN DOKUMEN BARU";
+
+      button.onclick =
+        resetScanner;
+
+    }
+
+
+    const resetButton =
+      document.getElementById(
+        "resetButton"
+      );
+
+
+    if (resetButton) {
+
+      resetButton.style.display =
+        "block";
 
     }
 
@@ -813,10 +978,18 @@ async function finalizeDocument() {
     );
 
 
-    document.getElementById(
-      "status"
-    ).textContent =
-      "GAGAL SIMPAN";
+    const status =
+      document.getElementById(
+        "status"
+      );
+
+
+    if (status) {
+
+      status.textContent =
+        "GAGAL SIMPAN";
+
+    }
 
 
     alert(
@@ -840,6 +1013,12 @@ async function finalizeDocument() {
  *************************************************/
 
 function handleScan() {
+
+  console.log(
+    "Current step:",
+    currentStep
+  );
+
 
   if (
     currentStep === 1
@@ -880,6 +1059,11 @@ function handleScan() {
 
 function resetScanner() {
 
+  console.log(
+    "RESET SCANNER"
+  );
+
+
   nomorDokumen =
     "";
 
@@ -890,34 +1074,74 @@ function resetScanner() {
     1;
 
 
-  document.getElementById(
-    "hasil"
-  ).textContent =
-    "-";
+  const hasil =
+    document.getElementById(
+      "hasil"
+    );
 
 
-  document.getElementById(
-    "vendor"
-  ).textContent =
-    "-";
+  if (hasil) {
+
+    hasil.textContent =
+      "-";
+
+  }
 
 
-  document.getElementById(
-    "status"
-  ).textContent =
-    "Siap scan";
+  const vendorElement =
+    document.getElementById(
+      "vendor"
+    );
 
 
-  document.getElementById(
-    "stepTitle"
-  ).textContent =
-    "SCAN 1 — NOMOR DOKUMEN";
+  if (vendorElement) {
+
+    vendorElement.textContent =
+      "-";
+
+  }
 
 
-  document.getElementById(
-    "scanLabel"
-  ).textContent =
-    "ARAHKAN NOMOR DOKUMEN KE SINI";
+  const status =
+    document.getElementById(
+      "status"
+    );
+
+
+  if (status) {
+
+    status.textContent =
+      "Siap scan";
+
+  }
+
+
+  const stepTitle =
+    document.getElementById(
+      "stepTitle"
+    );
+
+
+  if (stepTitle) {
+
+    stepTitle.textContent =
+      "SCAN 1 — NOMOR DOKUMEN";
+
+  }
+
+
+  const scanLabel =
+    document.getElementById(
+      "scanLabel"
+    );
+
+
+  if (scanLabel) {
+
+    scanLabel.textContent =
+      "ARAHKAN NOMOR DOKUMEN KE SINI";
+
+  }
 
 
   const button =
@@ -926,24 +1150,39 @@ function resetScanner() {
     );
 
 
-  button.textContent =
-    "📷 SCAN NOMOR";
+  if (button) {
+
+    button.textContent =
+      "📷 SCAN NOMOR";
+
+    button.onclick =
+      handleScan;
+
+  }
 
 
-  button.onclick =
-    handleScan;
+  const resetButton =
+    document.getElementById(
+      "resetButton"
+    );
 
 
-  document.getElementById(
-    "resetButton"
-  ).style.display =
-    "none";
+  if (resetButton) {
+
+    resetButton.style.display =
+      "none";
+
+  }
 
 }
 
 
 /*************************************************
  * LOADING
+ *
+ * DIPERBAIKI:
+ * Tidak akan error kalau
+ * .loading atau .loading-text tidak ada.
  *************************************************/
 
 function setLoading(
@@ -957,7 +1196,16 @@ function setLoading(
     );
 
 
+  /***********************************************
+   * Kalau elemen loading tidak ada,
+   * jangan hentikan scanner.
+   ***********************************************/
+
   if (!loading) {
+
+    console.log(
+      "Loading element tidak ditemukan"
+    );
 
     return;
 
@@ -972,10 +1220,22 @@ function setLoading(
 
     if (text) {
 
-      loading.querySelector(
-        ".loading-text"
-      ).textContent =
-        text;
+      const loadingText =
+        loading.querySelector(
+          ".loading-text"
+        );
+
+
+      /*******************************************
+       * CEK SEBELUM textContent
+       *******************************************/
+
+      if (loadingText) {
+
+        loadingText.textContent =
+          text;
+
+      }
 
     }
 
@@ -1000,10 +1260,12 @@ function updateStats() {
       "scanned"
     );
 
+
   const berhasil =
     document.getElementById(
       "berhasil"
     );
+
 
   const duplicate =
     document.getElementById(
@@ -1123,12 +1385,22 @@ function beep() {
 
 function vibrate() {
 
-  if (
-    navigator.vibrate
-  ) {
+  try {
 
-    navigator.vibrate(
-      100
+    if (
+      navigator.vibrate
+    ) {
+
+      navigator.vibrate(
+        100
+      );
+
+    }
+
+  } catch (error) {
+
+    console.log(
+      "Vibrate tidak tersedia"
     );
 
   }
@@ -1155,7 +1427,7 @@ if (scanButton) {
 
 
 /*************************************************
- * START CAMERA
+ * START
  *************************************************/
 
 startCamera();
