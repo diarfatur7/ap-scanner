@@ -121,7 +121,6 @@ async function startCamera() {
 /*************************************************
  * CAPTURE IMAGE FAST
  *************************************************/
-
 function captureCrop() {
 
   if (
@@ -129,17 +128,30 @@ function captureCrop() {
     !video.videoWidth ||
     !video.videoHeight
   ) {
-
-    throw new Error(
-      "Kamera belum siap"
-    );
-
+    throw new Error("Kamera belum siap");
   }
 
+  const scanner =
+    document.querySelector(".scanner-card");
+
+  const frame =
+    document.getElementById("scanFrame");
+
+  if (!scanner || !frame) {
+    throw new Error("Area scanner tidak ditemukan");
+  }
+
+  const canvas =
+    document.createElement("canvas");
 
   const ctx =
     canvas.getContext("2d");
 
+  /*
+   * ============================================
+   * UKURAN VIDEO ASLI
+   * ============================================
+   */
 
   const videoWidth =
     video.videoWidth;
@@ -148,35 +160,190 @@ function captureCrop() {
     video.videoHeight;
 
 
-  /***********************************************
-   * AREA TANGKAP
+  /*
+   * ============================================
+   * POSISI VIDEO DI DALAM SCANNER
    *
-   * 5% kiri
-   * 5% kanan
-   * 27.5% atas
-   * 27.5% bawah
+   * Karena CSS menggunakan:
    *
-   * Total:
-   * 90% lebar
-   * 45% tinggi
-   ***********************************************/
+   * object-fit: cover
+   *
+   * maka kita harus menghitung bagian video
+   * yang terlihat di layar.
+   * ============================================
+   */
 
-  const cropX =
-    videoWidth * 0.05;
+  const containerWidth =
+    scanner.clientWidth;
 
-  const cropY =
-    videoHeight * 0.275;
-
-  const cropWidth =
-    videoWidth * 0.90;
-
-  const cropHeight =
-    videoHeight * 0.45;
+  const containerHeight =
+    scanner.clientHeight;
 
 
-  /***********************************************
-   * MAX OUTPUT 500 PX
-   ***********************************************/
+  const videoRatio =
+    videoWidth / videoHeight;
+
+  const containerRatio =
+    containerWidth / containerHeight;
+
+
+  let renderedWidth;
+  let renderedHeight;
+
+  let offsetX = 0;
+  let offsetY = 0;
+
+
+  if (
+    videoRatio >
+    containerRatio
+  ) {
+
+    /*
+     * Video lebih lebar.
+     */
+
+    renderedHeight =
+      containerHeight;
+
+    renderedWidth =
+      renderedHeight *
+      videoRatio;
+
+    offsetX =
+      (renderedWidth -
+       containerWidth) / 2;
+
+  } else {
+
+    /*
+     * Video lebih tinggi.
+     */
+
+    renderedWidth =
+      containerWidth;
+
+    renderedHeight =
+      renderedWidth /
+      videoRatio;
+
+    offsetY =
+      (renderedHeight -
+       containerHeight) / 2;
+
+  }
+
+
+  /*
+   * ============================================
+   * POSISI FRAME HIJAU
+   * relatif terhadap scanner
+   * ============================================
+   */
+
+  const scannerRect =
+    scanner.getBoundingClientRect();
+
+  const frameRect =
+    frame.getBoundingClientRect();
+
+
+  const frameX =
+    frameRect.left -
+    scannerRect.left;
+
+  const frameY =
+    frameRect.top -
+    scannerRect.top;
+
+
+  const frameWidth =
+    frameRect.width;
+
+  const frameHeight =
+    frameRect.height;
+
+
+  /*
+   * ============================================
+   * KONVERSI FRAME LAYAR
+   * KE KOORDINAT VIDEO ASLI
+   * ============================================
+   */
+
+  let sourceX =
+    (frameX +
+     offsetX) *
+    (videoWidth /
+     renderedWidth);
+
+
+  let sourceY =
+    (frameY +
+     offsetY) *
+    (videoHeight /
+     renderedHeight);
+
+
+  let sourceWidth =
+    frameWidth *
+    (videoWidth /
+     renderedWidth);
+
+
+  let sourceHeight =
+    frameHeight *
+    (videoHeight /
+     renderedHeight);
+
+
+  /*
+   * ============================================
+   * BATASI AGAR TIDAK KELUAR VIDEO
+   * ============================================
+   */
+
+  sourceX =
+    Math.max(
+      0,
+      Math.min(
+        sourceX,
+        videoWidth
+      )
+    );
+
+
+  sourceY =
+    Math.max(
+      0,
+      Math.min(
+        sourceY,
+        videoHeight
+      )
+    );
+
+
+  sourceWidth =
+    Math.min(
+      sourceWidth,
+      videoWidth -
+      sourceX
+    );
+
+
+  sourceHeight =
+    Math.min(
+      sourceHeight,
+      videoHeight -
+      sourceY
+    );
+
+
+  /*
+   * ============================================
+   * OUTPUT KECIL
+   * ============================================
+   */
 
   const MAX_WIDTH =
     500;
@@ -185,19 +352,28 @@ function captureCrop() {
   const ratio =
     Math.min(
       1,
-      MAX_WIDTH / cropWidth
+      MAX_WIDTH /
+      sourceWidth
     );
 
 
   const outputWidth =
-    Math.round(
-      cropWidth * ratio
+    Math.max(
+      1,
+      Math.round(
+        sourceWidth *
+        ratio
+      )
     );
 
 
   const outputHeight =
-    Math.round(
-      cropHeight * ratio
+    Math.max(
+      1,
+      Math.round(
+        sourceHeight *
+        ratio
+      )
     );
 
 
@@ -208,19 +384,21 @@ function captureCrop() {
     outputHeight;
 
 
-  /***********************************************
-   * DRAW CROP
-   ***********************************************/
+  /*
+   * ============================================
+   * AMBIL HANYA AREA HIJAU
+   * ============================================
+   */
 
   ctx.drawImage(
 
     video,
 
-    cropX,
-    cropY,
+    sourceX,
+    sourceY,
 
-    cropWidth,
-    cropHeight,
+    sourceWidth,
+    sourceHeight,
 
     0,
     0,
@@ -231,9 +409,11 @@ function captureCrop() {
   );
 
 
-  /***********************************************
-   * JPEG 35%
-   ***********************************************/
+  /*
+   * ============================================
+   * KOMPRESI
+   * ============================================
+   */
 
   const image =
     canvas.toDataURL(
@@ -243,26 +423,52 @@ function captureCrop() {
 
 
   console.log(
-    "Image:",
+    "========== FAST CROP =========="
+  );
+
+  console.log(
+    "Video:",
+    videoWidth,
+    "x",
+    videoHeight
+  );
+
+  console.log(
+    "Frame:",
+    Math.round(frameWidth),
+    "x",
+    Math.round(frameHeight)
+  );
+
+  console.log(
+    "OCR source:",
+    Math.round(sourceWidth),
+    "x",
+    Math.round(sourceHeight)
+  );
+
+  console.log(
+    "Output:",
     outputWidth,
     "x",
     outputHeight
   );
 
-
   console.log(
-    "Base64 size:",
+    "Base64:",
     Math.round(
       image.length / 1024
     ),
     "KB"
   );
 
+  console.log(
+    "=============================="
+  );
+
 
   return image;
-
 }
-
 
 /*************************************************
  * SEND OCR
