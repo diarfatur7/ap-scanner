@@ -12,7 +12,7 @@
 
 <meta
   name="theme-color"
-  content="#07111f"
+  content="#050b13"
 >
 
 <title>
@@ -22,10 +22,19 @@
 
 <style>
 
+/* ==================================================
+   GLOBAL
+================================================== */
+
 * {
-  box-sizing: border-box;
+
+  box-sizing:
+    border-box;
+
   margin: 0;
+
   padding: 0;
+
 }
 
 
@@ -34,16 +43,19 @@ body {
   min-height: 100vh;
 
   background:
+
     radial-gradient(
       circle at top left,
       #16304d,
       transparent 40%
     ),
+
     radial-gradient(
       circle at bottom right,
       #0c2741,
       transparent 40%
     ),
+
     #050b13;
 
   color: white;
@@ -66,9 +78,12 @@ body {
 .app {
 
   width: 100%;
-  max-width: 650px;
 
-  margin: auto;
+  max-width:
+    650px;
+
+  margin:
+    auto;
 
 }
 
@@ -79,53 +94,62 @@ body {
 
 .header {
 
-  padding:
-    20px 4px 14px;
-
-  display: flex;
+  display:
+    flex;
 
   justify-content:
     space-between;
 
-  align-items: center;
+  align-items:
+    center;
+
+  padding:
+    20px 4px 14px;
 
 }
 
 
 .brand-title {
 
-  font-size: 25px;
+  font-size:
+    25px;
 
-  font-weight: 800;
-
-  letter-spacing: -0.5px;
+  font-weight:
+    800;
 
 }
 
 
 .brand-subtitle {
 
-  color: #8ea3b8;
+  margin-top:
+    3px;
 
-  font-size: 12px;
+  color:
+    #8ea3b8;
 
-  margin-top: 3px;
+  font-size:
+    12px;
 
 }
 
 
 .online {
 
-  display: flex;
+  display:
+    flex;
 
-  align-items: center;
+  align-items:
+    center;
 
-  gap: 6px;
+  gap:
+    6px;
 
   padding:
     7px 10px;
 
-  border-radius: 20px;
+  border-radius:
+    20px;
 
   background:
     rgba(34,197,94,.10);
@@ -134,23 +158,31 @@ body {
     1px solid
     rgba(34,197,94,.20);
 
-  color: #65e58c;
+  color:
+    #65e58c;
 
-  font-size: 11px;
+  font-size:
+    11px;
 
-  font-weight: 700;
+  font-weight:
+    700;
 
 }
 
 
 .online-dot {
 
-  width: 7px;
-  height: 7px;
+  width:
+    7px;
 
-  border-radius: 50%;
+  height:
+    7px;
 
-  background: #32e875;
+  border-radius:
+    50%;
+
+  background:
+    #32e875;
 
   box-shadow:
     0 0 10px
@@ -160,30 +192,36 @@ body {
 
 
 /* ==================================================
-   STEP
+   STEPS
 ================================================== */
 
 .steps {
 
-  display: grid;
+  display:
+    grid;
 
   grid-template-columns:
-    repeat(3, 1fr);
+    repeat(3,1fr);
 
-  gap: 7px;
+  gap:
+    7px;
 
-  margin-bottom: 12px;
+  margin-bottom:
+    12px;
 
 }
 
 
 .step {
 
-  padding: 10px 7px;
+  padding:
+    10px 7px;
 
-  text-align: center;
+  text-align:
+    center;
 
-  border-radius: 12px;
+  border-radius:
+    12px;
 
   background:
     rgba(255,255,255,.045);
@@ -192,18 +230,22 @@ body {
     1px solid
     rgba(255,255,255,.07);
 
-  color: #64788e;
+  color:
+    #64788e;
 
-  font-size: 10px;
+  font-size:
+    10px;
 
-  font-weight: 700;
+  font-weight:
+    700;
 
 }
 
 
 .step.active {
 
-  color: white;
+  color:
+    white;
 
   background:
     rgba(48,205,112,.10);
@@ -216,7 +258,8 @@ body {
 
 .step.done {
 
-  color: #66e58d;
+  color:
+    #66e58d;
 
 }
 
@@ -227,17 +270,23 @@ body {
 
 .scanner-card {
 
-  position: relative;
+  position:
+    relative;
 
-  width: 100%;
+  width:
+    100%;
 
-  aspect-ratio: 3 / 4;
+  aspect-ratio:
+    3 / 4;
 
-  overflow: hidden;
+  overflow:
+    hidden;
 
-  border-radius: 24px;
+  border-radius:
+    24px;
 
-  background: #000;
+  background:
+    #000;
 
   border:
     1px solid
@@ -250,65 +299,83 @@ body {
 }
 
 
+/* ==================================================
+   VIDEO
+================================================== */
+
 #video {
 
-  position: absolute;
+  position:
+    absolute;
 
-  inset: 0;
+  inset:
+    0;
 
-  width: 100%;
-  height: 100%;
+  width:
+    100%;
 
-  object-fit: cover;
+  height:
+    100%;
+
+  object-fit:
+    cover;
 
 }
 
 
 /* ==================================================
-   OVERLAY
+   CAMERA OVERLAY
 ================================================== */
 
 .camera-overlay {
 
-  position: absolute;
+  position:
+    absolute;
 
-  inset: 0;
+  inset:
+    0;
 
   background:
     linear-gradient(
       to bottom,
-      rgba(0,0,0,.38),
+      rgba(0,0,0,.35),
       transparent 25%,
-      transparent 70%,
+      transparent 72%,
       rgba(0,0,0,.45)
     );
 
-  pointer-events: none;
+  pointer-events:
+    none;
 
 }
 
 
 /* ==================================================
-   LABEL
+   SCAN LABEL
 ================================================== */
 
 .scan-label {
 
-  position: absolute;
+  position:
+    absolute;
 
-  top: 30%;
+  top:
+    30%;
 
-  left: 50%;
+  left:
+    50%;
 
   transform:
     translateX(-50%);
 
-  white-space: nowrap;
+  white-space:
+    nowrap;
 
   padding:
     7px 12px;
 
-  border-radius: 20px;
+  border-radius:
+    20px;
 
   background:
     rgba(0,0,0,.65);
@@ -316,70 +383,98 @@ body {
   backdrop-filter:
     blur(8px);
 
-  color: white;
+  color:
+    white;
 
-  font-size: 10px;
+  font-size:
+    10px;
 
-  font-weight: 800;
+  font-weight:
+    800;
 
-  letter-spacing: .5px;
+  letter-spacing:
+    .5px;
 
 }
 
 
 /* ==================================================
-   GREEN FRAME
+   GREEN OCR FRAME
 ================================================== */
 
 .scan-frame {
 
-  position: absolute;
+  position:
+    absolute;
 
-  left: 17%;
-  right: 17%;
+  left:
+    17%;
 
-  top: 38%;
+  right:
+    17%;
 
-  height: 18%;
+  top:
+    38%;
+
+  height:
+    18%;
 
   border:
     2px solid
     #36ef80;
 
-  border-radius: 10px;
+  border-radius:
+    10px;
 
   box-shadow:
+
     0 0 15px
     rgba(54,239,128,.30),
+
     inset 0 0 15px
     rgba(54,239,128,.08);
+
+  pointer-events:
+    none;
 
 }
 
 
-/* corner */
+/* ==================================================
+   CORNERS
+================================================== */
 
 .scan-frame::before,
 .scan-frame::after {
 
-  content: "";
+  content:
+    "";
 
-  position: absolute;
+  position:
+    absolute;
 
-  width: 18px;
-  height: 18px;
+  width:
+    18px;
 
-  border-color: #66ff9d;
+  height:
+    18px;
 
-  border-style: solid;
+  border-color:
+    #66ff9d;
+
+  border-style:
+    solid;
 
 }
 
 
 .scan-frame::before {
 
-  top: -2px;
-  left: -2px;
+  top:
+    -2px;
+
+  left:
+    -2px;
 
   border-width:
     3px 0 0 3px;
@@ -389,8 +484,11 @@ body {
 
 .scan-frame::after {
 
-  right: -2px;
-  bottom: -2px;
+  right:
+    -2px;
+
+  bottom:
+    -2px;
 
   border-width:
     0 3px 3px 0;
@@ -404,11 +502,14 @@ body {
 
 .result-card {
 
-  margin-top: 12px;
+  margin-top:
+    12px;
 
-  padding: 15px;
+  padding:
+    15px;
 
-  border-radius: 18px;
+  border-radius:
+    18px;
 
   background:
     rgba(255,255,255,.055);
@@ -425,16 +526,20 @@ body {
 
 .result-row {
 
-  display: flex;
+  display:
+    flex;
 
   justify-content:
     space-between;
 
-  align-items: center;
+  align-items:
+    center;
 
-  gap: 12px;
+  gap:
+    12px;
 
-  padding: 8px 0;
+  padding:
+    8px 0;
 
 }
 
@@ -450,26 +555,34 @@ body {
 
 .result-label {
 
-  color: #8297aa;
+  color:
+    #8297aa;
 
-  font-size: 11px;
+  font-size:
+    11px;
 
 }
 
 
 .result-value {
 
-  max-width: 70%;
+  max-width:
+    70%;
 
-  text-align: right;
+  text-align:
+    right;
 
-  color: white;
+  color:
+    white;
 
-  font-size: 13px;
+  font-size:
+    13px;
 
-  font-weight: 700;
+  font-weight:
+    700;
 
-  word-break: break-word;
+  word-break:
+    break-word;
 
 }
 
@@ -480,15 +593,20 @@ body {
 
 button {
 
-  width: 100%;
+  width:
+    100%;
 
-  border: 0;
+  border:
+    0;
 
-  border-radius: 15px;
+  border-radius:
+    15px;
 
-  padding: 15px;
+  padding:
+    15px;
 
-  margin-top: 12px;
+  margin-top:
+    12px;
 
   background:
     linear-gradient(
@@ -497,17 +615,17 @@ button {
       #18b95a
     );
 
-  color: #031109;
+  color:
+    #031109;
 
-  font-size: 14px;
+  font-size:
+    14px;
 
-  font-weight: 800;
+  font-weight:
+    800;
 
-  cursor: pointer;
-
-  box-shadow:
-    0 10px 25px
-    rgba(29,214,105,.18);
+  cursor:
+    pointer;
 
 }
 
@@ -525,13 +643,12 @@ button:active {
   background:
     rgba(255,255,255,.07);
 
-  color: white;
+  color:
+    white;
 
   border:
     1px solid
     rgba(255,255,255,.10);
-
-  box-shadow: none;
 
 }
 
@@ -542,25 +659,31 @@ button:active {
 
 .stats {
 
-  display: grid;
+  display:
+    grid;
 
   grid-template-columns:
     repeat(3,1fr);
 
-  gap: 8px;
+  gap:
+    8px;
 
-  margin-top: 12px;
+  margin-top:
+    12px;
 
 }
 
 
 .stat {
 
-  padding: 12px 7px;
+  padding:
+    12px 7px;
 
-  text-align: center;
+  text-align:
+    center;
 
-  border-radius: 14px;
+  border-radius:
+    14px;
 
   background:
     rgba(255,255,255,.045);
@@ -574,22 +697,28 @@ button:active {
 
 .stat-number {
 
-  font-size: 19px;
+  font-size:
+    19px;
 
-  font-weight: 800;
+  font-weight:
+    800;
 
 }
 
 
 .stat-label {
 
-  margin-top: 3px;
+  margin-top:
+    3px;
 
-  color: #71869b;
+  color:
+    #71869b;
 
-  font-size: 9px;
+  font-size:
+    9px;
 
-  font-weight: 700;
+  font-weight:
+    700;
 
 }
 
@@ -600,17 +729,23 @@ button:active {
 
 #loading {
 
-  position: fixed;
+  position:
+    fixed;
 
-  inset: 0;
+  inset:
+    0;
 
-  z-index: 1000;
+  z-index:
+    1000;
 
-  display: none;
+  display:
+    none;
 
-  align-items: center;
+  align-items:
+    center;
 
-  justify-content: center;
+  justify-content:
+    center;
 
   background:
     rgba(0,0,0,.70);
@@ -623,13 +758,17 @@ button:active {
 
 .loading-box {
 
-  width: 180px;
+  width:
+    180px;
 
-  padding: 22px;
+  padding:
+    22px;
 
-  text-align: center;
+  text-align:
+    center;
 
-  border-radius: 18px;
+  border-radius:
+    18px;
 
   background:
     rgba(16,28,42,.95);
@@ -643,8 +782,11 @@ button:active {
 
 .spinner {
 
-  width: 32px;
-  height: 32px;
+  width:
+    32px;
+
+  height:
+    32px;
 
   margin:
     0 auto 12px;
@@ -656,7 +798,8 @@ button:active {
   border-top-color:
     #38e979;
 
-  border-radius: 50%;
+  border-radius:
+    50%;
 
   animation:
     spin .7s linear infinite;
@@ -666,11 +809,14 @@ button:active {
 
 .loading-text {
 
-  color: #d8e2eb;
+  color:
+    #d8e2eb;
 
-  font-size: 12px;
+  font-size:
+    12px;
 
-  font-weight: 700;
+  font-weight:
+    700;
 
 }
 
@@ -678,26 +824,34 @@ button:active {
 @keyframes spin {
 
   to {
+
     transform:
       rotate(360deg);
+
   }
 
 }
 
+
+/* ==================================================
+   FOOTER
+================================================== */
 
 .footer {
 
   padding:
     18px 0 10px;
 
-  text-align: center;
+  text-align:
+    center;
 
-  color: #52677c;
+  color:
+    #52677c;
 
-  font-size: 9px;
+  font-size:
+    9px;
 
 }
-
 
 </style>
 
@@ -746,24 +900,32 @@ button:active {
       class="step active"
       id="step1"
     >
+
       01<br>
       NOMOR AP
+
     </div>
+
 
     <div
       class="step"
       id="step2"
     >
+
       02<br>
       VENDOR
+
     </div>
+
 
     <div
       class="step"
       id="step3"
     >
+
       03<br>
       SELESAI
+
     </div>
 
   </div>
@@ -793,6 +955,11 @@ button:active {
       ARAHKAN NOMOR AP KE SINI
     </div>
 
+
+    <!--
+      INI ADALAH AREA OCR.
+      HANYA AREA INI YANG DI-CROP.
+    -->
 
     <div
       class="scan-frame"
@@ -858,7 +1025,7 @@ button:active {
   </div>
 
 
-  <!-- BUTTON -->
+  <!-- SCAN -->
 
   <button
     id="scanButton"
@@ -866,6 +1033,8 @@ button:active {
     📷 SCAN NOMOR AP
   </button>
 
+
+  <!-- RESET -->
 
   <button
     id="resetButton"
@@ -932,14 +1101,18 @@ button:active {
 
 
   <div class="footer">
+
     AP Scanner • Filling Document System
+
   </div>
 
 
 </div>
 
 
-<!-- LOADING -->
+<!-- ==================================================
+     LOADING
+================================================== -->
 
 <div id="loading">
 
@@ -956,9 +1129,11 @@ button:active {
 </div>
 
 
-<!-- SCRIPT -->
+<!-- ==================================================
+     SCRIPT
+================================================== -->
 
-<script src="script.js?v=7"></script>
+<script src="script.js?v=9"></script>
 
 
 </body>
