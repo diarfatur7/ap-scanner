@@ -3,403 +3,716 @@
 
 <head>
 
-<meta charset="UTF-8">
+  <meta charset="UTF-8">
 
-<meta name="viewport"
-      content="width=device-width, initial-scale=1.0">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+  >
 
-<title>AP Scanner Fast</title>
+  <title>AP Scanner Fast</title>
 
-<style>
 
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    font-family:Arial,sans-serif;
-}
+  <style>
 
-body{
-    background:#0f172a;
-    color:white;
-}
-
-header{
-    background:#2563eb;
-    padding:15px;
-    text-align:center;
-    font-size:24px;
-    font-weight:bold;
-}
-
-.camera-wrap{
-    position:relative;
-    width:100%;
-    height:58vh;
-    background:#000;
-    overflow:hidden;
-}
-
-video{
-    width:100%;
-    height:100%;
-    object-fit:cover;
-}
-
-/* AREA SCAN */
-
-.scan-frame{
-
-    position:absolute;
-
-    left:8%;
-    right:8%;
-
-    top:35%;
-
-    height:30%;
-
-    border:3px solid #22c55e;
-
-    border-radius:12px;
-
-    box-shadow:
-        0 0 0 9999px rgba(0,0,0,.35);
-
-}
-
-.scan-label{
-
-    position:absolute;
-
-    top:-32px;
-
-    left:50%;
-
-    transform:translateX(-50%);
-
-    background:#22c55e;
-
-    color:#000;
-
-    padding:6px 12px;
-
-    border-radius:6px;
-
-    font-size:13px;
-
-    font-weight:bold;
-
-    white-space:nowrap;
-
-}
-
-.container{
-    padding:15px;
-}
-
-button{
-
-    width:100%;
-
-    padding:17px;
-
-    font-size:20px;
-
-    border:none;
-
-    border-radius:10px;
-
-    background:#2563eb;
-
-    color:white;
-
-    cursor:pointer;
-
-}
-
-button:disabled{
-    opacity:.5;
-}
-
-.card{
-
-    margin-top:15px;
-
-    background:#1e293b;
-
-    padding:15px;
-
-    border-radius:10px;
-
-}
-
-.label{
-
-    font-size:13px;
-
-    color:#94a3b8;
-
-}
-
-#hasil{
-
-    margin-top:7px;
-
-    font-size:30px;
-
-    font-weight:bold;
-
-    color:#22c55e;
-
-    word-break:break-all;
-
-}
-
-#status{
-
-    margin-top:10px;
-
-    font-size:15px;
-
-    color:#facc15;
-
-}
-
-.stats{
-
-    display:grid;
-
-    grid-template-columns:
-        repeat(3,1fr);
-
-    gap:8px;
-
-    margin-top:12px;
-
-}
-
-.stat{
-
-    background:#0f172a;
-
-    padding:12px 5px;
-
-    text-align:center;
-
-    border-radius:8px;
-
-}
-
-.stat-number{
-
-    font-size:22px;
-
-    font-weight:bold;
-
-}
-
-.stat-label{
-
-    margin-top:4px;
-
-    font-size:11px;
-
-    color:#94a3b8;
-
-}
-
-.loading{
-
-    display:none;
-
-    margin-top:12px;
-
-    text-align:center;
-
-}
-
-.spinner{
-
-    width:35px;
-
-    height:35px;
-
-    border:4px solid #334155;
-
-    border-top:4px solid #3b82f6;
-
-    border-radius:50%;
-
-    margin:auto;
-
-    animation:spin .8s linear infinite;
-
-}
-
-@keyframes spin{
-
-    100%{
-        transform:rotate(360deg);
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
 
-}
 
-footer{
+    body {
 
-    margin-top:15px;
+      background: #0b0f14;
 
-    text-align:center;
+      color: white;
 
-    font-size:12px;
+      font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
 
-    color:#64748b;
+      min-height: 100vh;
 
-}
+      overflow-x: hidden;
+    }
 
-</style>
+
+    .app {
+
+      width: 100%;
+
+      max-width: 600px;
+
+      margin: auto;
+
+      min-height: 100vh;
+
+      display: flex;
+
+      flex-direction: column;
+    }
+
+
+    /* HEADER */
+
+    .header {
+
+      padding: 18px 18px 12px;
+
+      display: flex;
+
+      align-items: center;
+
+      justify-content: space-between;
+    }
+
+
+    .title {
+
+      font-size: 22px;
+
+      font-weight: 800;
+    }
+
+
+    .subtitle {
+
+      color: #8e99a8;
+
+      font-size: 12px;
+
+      margin-top: 3px;
+    }
+
+
+    .online {
+
+      width: 10px;
+
+      height: 10px;
+
+      background: #20e070;
+
+      border-radius: 50%;
+
+      box-shadow:
+        0 0 12px
+        rgba(32,224,112,.8);
+    }
+
+
+    /* CAMERA */
+
+    .camera-wrapper {
+
+      position: relative;
+
+      width: 100%;
+
+      height: 62vh;
+
+      min-height: 400px;
+
+      max-height: 680px;
+
+      background: black;
+
+      overflow: hidden;
+    }
+
+
+    #video {
+
+      width: 100%;
+
+      height: 100%;
+
+      object-fit: cover;
+
+      display: block;
+    }
+
+
+    /* OVERLAY */
+
+    .camera-overlay {
+
+      position: absolute;
+
+      inset: 0;
+
+      pointer-events: none;
+    }
+
+
+    .scan-frame {
+
+      position: absolute;
+
+      left: 3%;
+
+      right: 3%;
+
+      top: 12%;
+
+      height: 76%;
+
+      border:
+        2px solid
+        #22e06f;
+
+      border-radius: 18px;
+
+      box-shadow:
+        0 0 0 9999px
+        rgba(0,0,0,.25),
+
+        0 0 20px
+        rgba(34,224,111,.25);
+    }
+
+
+    .scan-label {
+
+      position: absolute;
+
+      top: -34px;
+
+      left: 50%;
+
+      transform:
+        translateX(-50%);
+
+      white-space: nowrap;
+
+      background:
+        rgba(0,0,0,.75);
+
+      color: #22e06f;
+
+      font-size: 11px;
+
+      font-weight: 700;
+
+      padding:
+        7px 12px;
+
+      border-radius: 20px;
+    }
+
+
+    /* SCAN LINE */
+
+    .scan-line {
+
+      position: absolute;
+
+      left: 0;
+
+      right: 0;
+
+      height: 2px;
+
+      background: #22e06f;
+
+      box-shadow:
+        0 0 12px
+        rgba(34,224,111,.9);
+
+      animation:
+        scanMove 2.2s
+        infinite
+        ease-in-out;
+    }
+
+
+    @keyframes scanMove {
+
+      0% {
+        top: 5%;
+      }
+
+      50% {
+        top: 95%;
+      }
+
+      100% {
+        top: 5%;
+      }
+    }
+
+
+    /* BUTTON */
+
+    .button-area {
+
+      padding: 15px 18px 8px;
+    }
+
+
+    #scanButton {
+
+      width: 100%;
+
+      border: none;
+
+      background:
+        linear-gradient(
+          135deg,
+          #20d86a,
+          #15b957
+        );
+
+      color: #06100a;
+
+      font-size: 17px;
+
+      font-weight: 800;
+
+      padding: 17px;
+
+      border-radius: 15px;
+
+      cursor: pointer;
+
+      box-shadow:
+        0 7px 20px
+        rgba(32,216,106,.18);
+    }
+
+
+    #scanButton:active {
+
+      transform: scale(.98);
+    }
+
+
+    #scanButton:disabled {
+
+      opacity: .5;
+
+      cursor: not-allowed;
+    }
+
+
+    /* RESULT */
+
+    .result-card {
+
+      margin: 10px 18px;
+
+      padding: 17px;
+
+      background: #131922;
+
+      border:
+        1px solid
+        #202a37;
+
+      border-radius: 15px;
+    }
+
+
+    .result-title {
+
+      color: #8792a2;
+
+      font-size: 11px;
+
+      text-transform: uppercase;
+
+      letter-spacing: .7px;
+
+      margin-bottom: 5px;
+    }
+
+
+    .result-number {
+
+      font-size: 25px;
+
+      font-weight: 800;
+
+      word-break: break-all;
+
+      color: white;
+    }
+
+
+    .vendor {
+
+      margin-top: 12px;
+
+      padding-top: 12px;
+
+      border-top:
+        1px solid
+        #202a37;
+    }
+
+
+    .vendor-name {
+
+      font-size: 15px;
+
+      font-weight: 700;
+
+      color: #20d86a;
+
+      margin-top: 4px;
+    }
+
+
+    .status {
+
+      margin-top: 10px;
+
+      font-size: 13px;
+
+      color: #8e99a8;
+
+    }
+
+
+    /* LOADING */
+
+    .loading {
+
+      display: none;
+
+      align-items: center;
+
+      justify-content: center;
+
+      gap: 9px;
+
+      padding: 10px;
+
+      color: #20d86a;
+
+      font-size: 13px;
+    }
+
+
+    .spinner {
+
+      width: 16px;
+
+      height: 16px;
+
+      border:
+        2px solid
+        #344150;
+
+      border-top-color:
+        #20d86a;
+
+      border-radius: 50%;
+
+      animation:
+        spin .7s linear infinite;
+    }
+
+
+    @keyframes spin {
+
+      to {
+        transform: rotate(360deg);
+      }
+
+    }
+
+
+    /* STATS */
+
+    .stats {
+
+      display: grid;
+
+      grid-template-columns:
+        repeat(3, 1fr);
+
+      gap: 8px;
+
+      padding:
+        8px 18px 20px;
+    }
+
+
+    .stat {
+
+      background: #131922;
+
+      border:
+        1px solid
+        #202a37;
+
+      border-radius: 12px;
+
+      padding: 12px 8px;
+
+      text-align: center;
+    }
+
+
+    .stat-value {
+
+      font-size: 20px;
+
+      font-weight: 800;
+    }
+
+
+    .stat-label {
+
+      color: #7d8998;
+
+      font-size: 9px;
+
+      margin-top: 4px;
+
+      letter-spacing: .5px;
+    }
+
+
+    /* ERROR */
+
+    .error {
+
+      color: #ff7070 !important;
+    }
+
+
+    .success {
+
+      color: #20d86a !important;
+    }
+
+
+    .warning {
+
+      color: #ffc857 !important;
+    }
+
+
+    /* MOBILE */
+
+    @media (max-width: 400px) {
+
+      .camera-wrapper {
+
+        height: 58vh;
+      }
+
+
+      .result-number {
+
+        font-size: 21px;
+      }
+
+
+      #scanButton {
+
+        font-size: 16px;
+
+        padding: 15px;
+      }
+
+    }
+
+  </style>
 
 </head>
 
 
 <body>
 
-
-<header>
-📷 AP SCANNER — FAST
-</header>
+<div class="app">
 
 
-<div class="camera-wrap">
+  <!-- HEADER -->
 
-    <video
-        id="video"
-        autoplay
-        playsinline
-        muted>
-    </video>
+  <div class="header">
 
-    <div class="scan-frame">
+    <div>
 
-        <div class="scan-label">
-            ARAHKAN NOMOR AP KE SINI
-        </div>
+      <div class="title">
+        AP Scanner
+      </div>
+
+      <div class="subtitle">
+        Scan nomor dokumen & vendor
+      </div>
 
     </div>
 
-</div>
+
+    <div
+      class="online"
+      title="Scanner Online"
+    ></div>
+
+  </div>
 
 
-<div class="container">
+  <!-- CAMERA -->
+
+  <div class="camera-wrapper">
+
+    <video
+      id="video"
+      autoplay
+      playsinline
+      muted
+    ></video>
 
 
-<button
-    id="scanBtn"
-    onclick="scan()">
+    <div class="camera-overlay">
 
-    📷 SCAN DOKUMEN
+      <div class="scan-frame">
 
-</button>
+        <div class="scan-label">
+          ARAHKAN DOKUMEN KE SINI
+        </div>
 
+        <div class="scan-line"></div>
 
-<div class="card">
+      </div>
 
+    </div>
 
-<div class="label">
-Nomor AP
-</div>
-
-
-<div id="hasil">
-Belum Scan
-</div>
+  </div>
 
 
-<div id="status">
-Memulai kamera...
-</div>
+  <!-- BUTTON -->
+
+  <div class="button-area">
+
+    <button id="scanButton">
+      📷 SCAN DOKUMEN
+    </button>
+
+  </div>
 
 
-<div
+  <!-- LOADING -->
+
+  <div
+    id="loading"
     class="loading"
-    id="loading">
+  >
 
     <div class="spinner"></div>
 
-    <div style="margin-top:8px">
-        OCR sedang memproses...
+    <span>
+      Membaca dokumen...
+    </span>
+
+  </div>
+
+
+  <!-- RESULT -->
+
+  <div class="result-card">
+
+    <div class="result-title">
+      Nomor Dokumen
     </div>
-
-</div>
-
-
-<div class="stats">
-
-
-<div class="stat">
 
     <div
-        class="stat-number"
-        id="totalScan">
-        0
+      id="hasil"
+      class="result-number"
+    >
+      -
     </div>
 
-    <div class="stat-label">
+
+    <div class="vendor">
+
+      <div class="result-title">
+        Vendor
+      </div>
+
+      <div
+        id="vendor"
+        class="vendor-name"
+      >
+        -
+      </div>
+
+    </div>
+
+
+    <div
+      id="status"
+      class="status"
+    >
+      Siap melakukan scan
+    </div>
+
+  </div>
+
+
+  <!-- STATS -->
+
+  <div class="stats">
+
+    <div class="stat">
+
+      <div
+        id="scanned"
+        class="stat-value"
+      >
+        0
+      </div>
+
+      <div class="stat-label">
         SCANNED
+      </div>
+
     </div>
 
-</div>
 
+    <div class="stat">
 
-<div class="stat">
-
-    <div
-        class="stat-number"
-        id="successScan">
+      <div
+        id="berhasil"
+        class="stat-value"
+      >
         0
-    </div>
+      </div>
 
-    <div class="stat-label">
+      <div class="stat-label">
         BERHASIL
+      </div>
+
     </div>
 
-</div>
 
+    <div class="stat">
 
-<div class="stat">
-
-    <div
-        class="stat-number"
-        id="duplicateScan">
+      <div
+        id="duplikat"
+        class="stat-value"
+      >
         0
-    </div>
+      </div>
 
-    <div class="stat-label">
+      <div class="stat-label">
         DUPLIKAT
+      </div>
+
     </div>
 
-</div>
+  </div>
 
 
 </div>
-
-
-</div>
-
-
-<footer>
-AP Scanner Fast v2
-</footer>
-
-
-<canvas
-    id="canvas"
-    style="display:none;">
-</canvas>
 
 
 <script src="script.js"></script>
-
 
 </body>
 
