@@ -1,44 +1,18 @@
-/*************************************************
- * AP SCANNER FAST 2X SCAN
- * VERSION 5
- *
- * SCAN 1 = NOMOR DOKUMEN
- * SCAN 2 = VENDOR
- *
- * FAST MODE
- * CAMERA 640x480
- * OUTPUT MAX 500px
- * JPEG QUALITY 35%
- *************************************************/
+/****************************************************
+ * AP SCANNER - SPEED OCR
+ * Frontend
+ ****************************************************/
 
 
-/*************************************************
- * CONFIG
- *************************************************/
+/* ==================================================
+   CONFIG
+================================================== */
 
 const WEBAPP_URL =
   "https://script.google.com/macros/s/AKfycbzg0Q5slomCGANi1AD6G4PRNmBOH154c7CZnjqosoU5O6znIlXcxKm3tytai6uD-wjcnA/exec";
 
 
-console.log(
-  "AP SCANNER FAST 2X VERSION 5 AKTIF"
-);
-
-
-/*************************************************
- * ELEMENT
- *************************************************/
-
-const video =
-  document.getElementById("video");
-
-const canvas =
-  document.createElement("canvas");
-
-
-/*************************************************
- * STATE
- *************************************************/
+let stream = null;
 
 let currentStep = 1;
 
@@ -46,1350 +20,39 @@ let nomorDokumen = "";
 
 let vendor = "";
 
-let scannedCount = 0;
 
-let successCount = 0;
+/* ==================================================
+   DOM
+================================================== */
 
-let duplicateCount = 0;
+const video =
+  document.getElementById("video");
 
+const scanButton =
+  document.getElementById("scanButton");
 
-/*************************************************
- * START CAMERA
- *************************************************/
+const resetButton =
+  document.getElementById("resetButton");
 
-async function startCamera() {
+const hasil =
+  document.getElementById("hasil");
 
-  try {
+const vendorElement =
+  document.getElementById("vendor");
 
-    const stream =
-      await navigator.mediaDevices.getUserMedia({
+const statusElement =
+  document.getElementById("status");
 
-        video: {
+const scanLabel =
+  document.getElementById("scanLabel");
 
-          facingMode: {
-            ideal: "environment"
-          },
+const stepTitle =
+  document.getElementById("stepTitle");
 
-          width: {
-            ideal: 640
-          },
 
-          height: {
-            ideal: 480
-          }
-
-        },
-
-        audio: false
-
-      });
-
-
-    video.srcObject =
-      stream;
-
-
-    await video.play();
-
-
-    console.log(
-      "Camera aktif:",
-      video.videoWidth,
-      "x",
-      video.videoHeight
-    );
-
-
-  } catch (error) {
-
-    console.error(
-      "Camera error:",
-      error
-    );
-
-
-    alert(
-      "Kamera tidak dapat digunakan.\n\n" +
-      error.message
-    );
-
-  }
-
-}
-
-
-/*************************************************
- * CAPTURE IMAGE FAST
- *************************************************/
-function captureCrop() {
-
-  if (
-    !video ||
-    !video.videoWidth ||
-    !video.videoHeight
-  ) {
-    throw new Error("Kamera belum siap");
-  }
-
-  const scanner =
-    document.querySelector(".scanner-card");
-
-  const frame =
-    document.getElementById("scanFrame");
-
-  if (!scanner || !frame) {
-    throw new Error("Area scanner tidak ditemukan");
-  }
-
-  const canvas =
-    document.createElement("canvas");
-
-  const ctx =
-    canvas.getContext("2d");
-
-  /*
-   * ============================================
-   * UKURAN VIDEO ASLI
-   * ============================================
-   */
-
-  const videoWidth =
-    video.videoWidth;
-
-  const videoHeight =
-    video.videoHeight;
-
-
-  /*
-   * ============================================
-   * POSISI VIDEO DI DALAM SCANNER
-   *
-   * Karena CSS menggunakan:
-   *
-   * object-fit: cover
-   *
-   * maka kita harus menghitung bagian video
-   * yang terlihat di layar.
-   * ============================================
-   */
-
-  const containerWidth =
-    scanner.clientWidth;
-
-  const containerHeight =
-    scanner.clientHeight;
-
-
-  const videoRatio =
-    videoWidth / videoHeight;
-
-  const containerRatio =
-    containerWidth / containerHeight;
-
-
-  let renderedWidth;
-  let renderedHeight;
-
-  let offsetX = 0;
-  let offsetY = 0;
-
-
-  if (
-    videoRatio >
-    containerRatio
-  ) {
-
-    /*
-     * Video lebih lebar.
-     */
-
-    renderedHeight =
-      containerHeight;
-
-    renderedWidth =
-      renderedHeight *
-      videoRatio;
-
-    offsetX =
-      (renderedWidth -
-       containerWidth) / 2;
-
-  } else {
-
-    /*
-     * Video lebih tinggi.
-     */
-
-    renderedWidth =
-      containerWidth;
-
-    renderedHeight =
-      renderedWidth /
-      videoRatio;
-
-    offsetY =
-      (renderedHeight -
-       containerHeight) / 2;
-
-  }
-
-
-  /*
-   * ============================================
-   * POSISI FRAME HIJAU
-   * relatif terhadap scanner
-   * ============================================
-   */
-
-  const scannerRect =
-    scanner.getBoundingClientRect();
-
-  const frameRect =
-    frame.getBoundingClientRect();
-
-
-  const frameX =
-    frameRect.left -
-    scannerRect.left;
-
-  const frameY =
-    frameRect.top -
-    scannerRect.top;
-
-
-  const frameWidth =
-    frameRect.width;
-
-  const frameHeight =
-    frameRect.height;
-
-
-  /*
-   * ============================================
-   * KONVERSI FRAME LAYAR
-   * KE KOORDINAT VIDEO ASLI
-   * ============================================
-   */
-
-  let sourceX =
-    (frameX +
-     offsetX) *
-    (videoWidth /
-     renderedWidth);
-
-
-  let sourceY =
-    (frameY +
-     offsetY) *
-    (videoHeight /
-     renderedHeight);
-
-
-  let sourceWidth =
-    frameWidth *
-    (videoWidth /
-     renderedWidth);
-
-
-  let sourceHeight =
-    frameHeight *
-    (videoHeight /
-     renderedHeight);
-
-
-  /*
-   * ============================================
-   * BATASI AGAR TIDAK KELUAR VIDEO
-   * ============================================
-   */
-
-  sourceX =
-    Math.max(
-      0,
-      Math.min(
-        sourceX,
-        videoWidth
-      )
-    );
-
-
-  sourceY =
-    Math.max(
-      0,
-      Math.min(
-        sourceY,
-        videoHeight
-      )
-    );
-
-
-  sourceWidth =
-    Math.min(
-      sourceWidth,
-      videoWidth -
-      sourceX
-    );
-
-
-  sourceHeight =
-    Math.min(
-      sourceHeight,
-      videoHeight -
-      sourceY
-    );
-
-
-  /*
-   * ============================================
-   * OUTPUT KECIL
-   * ============================================
-   */
-
-  const MAX_WIDTH =
-    500;
-
-
-  const ratio =
-    Math.min(
-      1,
-      MAX_WIDTH /
-      sourceWidth
-    );
-
-
-  const outputWidth =
-    Math.max(
-      1,
-      Math.round(
-        sourceWidth *
-        ratio
-      )
-    );
-
-
-  const outputHeight =
-    Math.max(
-      1,
-      Math.round(
-        sourceHeight *
-        ratio
-      )
-    );
-
-
-  canvas.width =
-    outputWidth;
-
-  canvas.height =
-    outputHeight;
-
-
-  /*
-   * ============================================
-   * AMBIL HANYA AREA HIJAU
-   * ============================================
-   */
-
-  ctx.drawImage(
-
-    video,
-
-    sourceX,
-    sourceY,
-
-    sourceWidth,
-    sourceHeight,
-
-    0,
-    0,
-
-    outputWidth,
-    outputHeight
-
-  );
-
-
-  /*
-   * ============================================
-   * KOMPRESI
-   * ============================================
-   */
-
-  const image =
-    canvas.toDataURL(
-      "image/jpeg",
-      0.35
-    );
-
-
-  console.log(
-    "========== FAST CROP =========="
-  );
-
-  console.log(
-    "Video:",
-    videoWidth,
-    "x",
-    videoHeight
-  );
-
-  console.log(
-    "Frame:",
-    Math.round(frameWidth),
-    "x",
-    Math.round(frameHeight)
-  );
-
-  console.log(
-    "OCR source:",
-    Math.round(sourceWidth),
-    "x",
-    Math.round(sourceHeight)
-  );
-
-  console.log(
-    "Output:",
-    outputWidth,
-    "x",
-    outputHeight
-  );
-
-  console.log(
-    "Base64:",
-    Math.round(
-      image.length / 1024
-    ),
-    "KB"
-  );
-
-  console.log(
-    "=============================="
-  );
-
-
-  return image;
-}
-
-/*************************************************
- * SEND OCR
- *************************************************/
-
-async function sendOCR(
-  image,
-  mode
-) {
-
-  console.log(
-    "OCR START:",
-    mode
-  );
-
-
-  const startTime =
-    performance.now();
-
-
-  try {
-
-    const response =
-      await fetch(
-
-        WEBAPP_URL,
-
-        {
-
-          method:
-            "POST",
-
-          headers: {
-
-            "Content-Type":
-              "text/plain;charset=utf-8"
-
-          },
-
-          body:
-            JSON.stringify({
-
-              image:
-                image,
-
-              mode:
-                mode
-
-            })
-
-        }
-
-      );
-
-
-    if (
-      !response.ok
-    ) {
-
-      throw new Error(
-        "HTTP " +
-        response.status
-      );
-
-    }
-
-
-    const result =
-      await response.json();
-
-
-    const endTime =
-      performance.now();
-
-
-    console.log(
-      "OCR SELESAI:",
-      Math.round(
-        endTime -
-        startTime
-      ),
-      "ms"
-    );
-
-
-    console.log(
-      "OCR RESULT:",
-      result
-    );
-
-
-    return result;
-
-
-  } catch (error) {
-
-    console.error(
-      "OCR ERROR:",
-      error
-    );
-
-
-    throw error;
-
-  }
-
-}
-
-
-/*************************************************
- * SCAN NOMOR
- *************************************************/
-
-async function scanNomor() {
-
-  if (
-    currentStep !== 1
-  ) {
-
-    return;
-
-  }
-
-
-  const button =
-    document.getElementById(
-      "scanButton"
-    );
-
-
-  try {
-
-    setLoading(
-      true,
-      "Membaca nomor..."
-    );
-
-
-    if (button) {
-
-      button.disabled =
-        true;
-
-    }
-
-
-    const image =
-      captureCrop();
-
-
-    const result =
-      await sendOCR(
-        image,
-        "number"
-      );
-
-
-    scannedCount++;
-
-
-    if (
-      result &&
-      result.success &&
-      result.nomor
-    ) {
-
-      nomorDokumen =
-        result.nomor;
-
-
-      successCount++;
-
-
-      const hasil =
-        document.getElementById(
-          "hasil"
-        );
-
-
-      if (hasil) {
-
-        hasil.textContent =
-          nomorDokumen;
-
-      }
-
-
-      const vendorElement =
-        document.getElementById(
-          "vendor"
-        );
-
-
-      if (vendorElement) {
-
-        vendorElement.textContent =
-          "-";
-
-      }
-
-
-      const status =
-        document.getElementById(
-          "status"
-        );
-
-
-      if (status) {
-
-        status.textContent =
-          "Nomor ditemukan";
-
-      }
-
-
-      /*****************************************
-       * PINDAH KE SCAN 2
-       *****************************************/
-
-      currentStep =
-        2;
-
-
-      if (button) {
-
-        button.textContent =
-          "📷 SCAN VENDOR";
-
-      }
-
-
-      const stepTitle =
-        document.getElementById(
-          "stepTitle"
-        );
-
-
-      if (stepTitle) {
-
-        stepTitle.textContent =
-          "SCAN 2 — VENDOR";
-
-      }
-
-
-      const scanLabel =
-        document.getElementById(
-          "scanLabel"
-        );
-
-
-      if (scanLabel) {
-
-        scanLabel.textContent =
-          "ARAHKAN NAMA VENDOR KE SINI";
-
-      }
-
-
-      beep();
-
-      vibrate();
-
-
-    } else {
-
-      const status =
-        document.getElementById(
-          "status"
-        );
-
-
-      if (status) {
-
-        status.textContent =
-          "Nomor tidak ditemukan";
-
-      }
-
-
-      alert(
-        "Nomor dokumen tidak ditemukan.\n\n" +
-        "Coba dekatkan nomor ke area scan."
-      );
-
-    }
-
-
-    updateStats();
-
-
-  } catch (error) {
-
-    console.error(
-      "SCAN NOMOR ERROR:",
-      error
-    );
-
-
-    const status =
-      document.getElementById(
-        "status"
-      );
-
-
-    if (status) {
-
-      status.textContent =
-        "ERROR";
-
-    }
-
-
-    alert(
-      "Gagal scan nomor.\n\n" +
-      error.message
-    );
-
-
-  } finally {
-
-    if (button) {
-
-      button.disabled =
-        false;
-
-    }
-
-
-    setLoading(
-      false
-    );
-
-  }
-
-}
-
-
-/*************************************************
- * SCAN VENDOR
- *************************************************/
-
-async function scanVendor() {
-
-  if (
-    currentStep !== 2
-  ) {
-
-    return;
-
-  }
-
-
-  const button =
-    document.getElementById(
-      "scanButton"
-    );
-
-
-  try {
-
-    setLoading(
-      true,
-      "Membaca vendor..."
-    );
-
-
-    if (button) {
-
-      button.disabled =
-        true;
-
-    }
-
-
-    const image =
-      captureCrop();
-
-
-    const result =
-      await sendOCR(
-        image,
-        "vendor"
-      );
-
-
-    scannedCount++;
-
-
-    if (
-      result &&
-      result.success &&
-      result.vendor
-    ) {
-
-      vendor =
-        result.vendor;
-
-
-      successCount++;
-
-
-      const vendorElement =
-        document.getElementById(
-          "vendor"
-        );
-
-
-      if (vendorElement) {
-
-        vendorElement.textContent =
-          vendor;
-
-      }
-
-
-      const status =
-        document.getElementById(
-          "status"
-        );
-
-
-      if (status) {
-
-        status.textContent =
-          "Vendor ditemukan";
-
-      }
-
-
-      /*****************************************
-       * SIMPAN OTOMATIS
-       *****************************************/
-
-      await finalizeDocument();
-
-
-    } else {
-
-      const status =
-        document.getElementById(
-          "status"
-        );
-
-
-      if (status) {
-
-        status.textContent =
-          "Vendor tidak ditemukan";
-
-      }
-
-
-      alert(
-        "Vendor tidak ditemukan.\n\n" +
-        "Coba arahkan kamera ke nama vendor."
-      );
-
-    }
-
-
-    updateStats();
-
-
-  } catch (error) {
-
-    console.error(
-      "SCAN VENDOR ERROR:",
-      error
-    );
-
-
-    const status =
-      document.getElementById(
-        "status"
-      );
-
-
-    if (status) {
-
-      status.textContent =
-        "ERROR";
-
-      }
-
-
-    alert(
-      "Gagal scan vendor.\n\n" +
-      error.message
-    );
-
-
-  } finally {
-
-    if (button) {
-
-      button.disabled =
-        false;
-
-    }
-
-
-    setLoading(
-      false
-    );
-
-  }
-
-}
-
-
-/*************************************************
- * FINALIZE / SAVE
- *************************************************/
-
-async function finalizeDocument() {
-
-  console.log(
-    "===== FINALIZE ====="
-  );
-
-
-  console.log(
-    "Nomor:",
-    nomorDokumen
-  );
-
-
-  console.log(
-    "Vendor:",
-    vendor
-  );
-
-
-  try {
-
-    setLoading(
-      true,
-      "Menyimpan..."
-    );
-
-
-    const response =
-      await fetch(
-
-        WEBAPP_URL,
-
-        {
-
-          method:
-            "POST",
-
-          headers: {
-
-            "Content-Type":
-              "text/plain;charset=utf-8"
-
-          },
-
-          body:
-            JSON.stringify({
-
-              action:
-                "finalize",
-
-              nomorDokumen:
-                nomorDokumen,
-
-              vendor:
-                vendor
-
-            })
-
-        }
-
-      );
-
-
-    if (
-      !response.ok
-    ) {
-
-      throw new Error(
-        "HTTP " +
-        response.status
-      );
-
-    }
-
-
-    const result =
-      await response.json();
-
-
-    console.log(
-      "FINALIZE RESULT:",
-      result
-    );
-
-
-    if (
-      !result.success
-    ) {
-
-      throw new Error(
-        result.message ||
-        "Gagal menyimpan dokumen"
-      );
-
-    }
-
-
-    /*********************************************
-     * DUPLICATE
-     *********************************************/
-
-    if (
-      result.duplicate
-    ) {
-
-      duplicateCount++;
-
-
-      const status =
-        document.getElementById(
-          "status"
-        );
-
-
-      if (status) {
-
-        status.textContent =
-          "DUPLIKAT";
-
-      }
-
-
-      alert(
-        "Nomor dokumen sudah pernah masuk filling."
-      );
-
-
-    } else {
-
-      const status =
-        document.getElementById(
-          "status"
-        );
-
-
-      if (status) {
-
-        status.textContent =
-          "SUDAH MASUK FILLING";
-
-      }
-
-
-      beep();
-
-      vibrate();
-
-    }
-
-
-    updateStats();
-
-
-    /*********************************************
-     * SELESAI
-     *********************************************/
-
-    currentStep =
-      3;
-
-
-    const button =
-      document.getElementById(
-        "scanButton"
-      );
-
-
-    if (button) {
-
-      button.textContent =
-        "📷 SCAN DOKUMEN BARU";
-
-      button.onclick =
-        resetScanner;
-
-    }
-
-
-    const resetButton =
-      document.getElementById(
-        "resetButton"
-      );
-
-
-    if (resetButton) {
-
-      resetButton.style.display =
-        "block";
-
-    }
-
-
-  } catch (error) {
-
-    console.error(
-      "FINALIZE ERROR:",
-      error
-    );
-
-
-    const status =
-      document.getElementById(
-        "status"
-      );
-
-
-    if (status) {
-
-      status.textContent =
-        "GAGAL SIMPAN";
-
-    }
-
-
-    alert(
-      "Dokumen gagal disimpan.\n\n" +
-      error.message
-    );
-
-  } finally {
-
-    setLoading(
-      false
-    );
-
-  }
-
-}
-
-
-/*************************************************
- * MAIN BUTTON
- *************************************************/
-
-function handleScan() {
-
-  console.log(
-    "Current step:",
-    currentStep
-  );
-
-
-  if (
-    currentStep === 1
-  ) {
-
-    scanNomor();
-
-    return;
-
-  }
-
-
-  if (
-    currentStep === 2
-  ) {
-
-    scanVendor();
-
-    return;
-
-  }
-
-
-  if (
-    currentStep === 3
-  ) {
-
-    resetScanner();
-
-  }
-
-}
-
-
-/*************************************************
- * RESET
- *************************************************/
-
-function resetScanner() {
-
-  console.log(
-    "RESET SCANNER"
-  );
-
-
-  nomorDokumen =
-    "";
-
-  vendor =
-    "";
-
-  currentStep =
-    1;
-
-
-  const hasil =
-    document.getElementById(
-      "hasil"
-    );
-
-
-  if (hasil) {
-
-    hasil.textContent =
-      "-";
-
-  }
-
-
-  const vendorElement =
-    document.getElementById(
-      "vendor"
-    );
-
-
-  if (vendorElement) {
-
-    vendorElement.textContent =
-      "-";
-
-  }
-
-
-  const status =
-    document.getElementById(
-      "status"
-    );
-
-
-  if (status) {
-
-    status.textContent =
-      "Siap scan";
-
-  }
-
-
-  const stepTitle =
-    document.getElementById(
-      "stepTitle"
-    );
-
-
-  if (stepTitle) {
-
-    stepTitle.textContent =
-      "SCAN 1 — NOMOR DOKUMEN";
-
-  }
-
-
-  const scanLabel =
-    document.getElementById(
-      "scanLabel"
-    );
-
-
-  if (scanLabel) {
-
-    scanLabel.textContent =
-      "ARAHKAN NOMOR DOKUMEN KE SINI";
-
-  }
-
-
-  const button =
-    document.getElementById(
-      "scanButton"
-    );
-
-
-  if (button) {
-
-    button.textContent =
-      "📷 SCAN NOMOR";
-
-    button.onclick =
-      handleScan;
-
-  }
-
-
-  const resetButton =
-    document.getElementById(
-      "resetButton"
-    );
-
-
-  if (resetButton) {
-
-    resetButton.style.display =
-      "none";
-
-  }
-
-}
-
-
-/*************************************************
- * LOADING
- *
- * DIPERBAIKI:
- * Tidak akan error kalau
- * .loading atau .loading-text tidak ada.
- *************************************************/
+/* ==================================================
+   LOADING
+================================================== */
 
 function setLoading(
   active,
@@ -1401,11 +64,6 @@ function setLoading(
       "loading"
     );
 
-
-  /***********************************************
-   * Kalau elemen loading tidak ada,
-   * jangan hentikan scanner.
-   ***********************************************/
 
   if (!loading) {
 
@@ -1432,10 +90,6 @@ function setLoading(
         );
 
 
-      /*******************************************
-       * CEK SEBELUM textContent
-       *******************************************/
-
       if (loadingText) {
 
         loadingText.textContent =
@@ -1455,59 +109,1074 @@ function setLoading(
 }
 
 
-/*************************************************
- * STATS
- *************************************************/
+/* ==================================================
+   CAMERA
+================================================== */
 
-function updateStats() {
+async function startCamera() {
 
-  const scanned =
-    document.getElementById(
-      "scanned"
+  try {
+
+    if (stream) {
+
+      stream
+        .getTracks()
+        .forEach(
+          function(track) {
+
+            track.stop();
+
+          }
+        );
+
+    }
+
+
+    stream =
+      await navigator.mediaDevices
+        .getUserMedia({
+
+          video: {
+
+            facingMode: {
+              ideal: "environment"
+            },
+
+            width: {
+              ideal: 640
+            },
+
+            height: {
+              ideal: 480
+            },
+
+            frameRate: {
+              ideal: 30,
+              max: 30
+            }
+
+          },
+
+          audio: false
+
+        });
+
+
+    video.srcObject =
+      stream;
+
+
+    await video.play();
+
+
+    console.log(
+      "Camera:",
+      video.videoWidth,
+      "x",
+      video.videoHeight
     );
 
 
-  const berhasil =
-    document.getElementById(
-      "berhasil"
+  } catch (error) {
+
+    console.error(
+      "Camera error:",
+      error
     );
 
 
-  const duplicate =
-    document.getElementById(
-      "duplicate"
+    alert(
+      "Kamera tidak dapat digunakan."
     );
-
-
-  if (scanned) {
-
-    scanned.textContent =
-      scannedCount;
-
-  }
-
-
-  if (berhasil) {
-
-    berhasil.textContent =
-      successCount;
-
-  }
-
-
-  if (duplicate) {
-
-    duplicate.textContent =
-      duplicateCount;
 
   }
 
 }
 
 
-/*************************************************
- * BEEP
- *************************************************/
+/* ==================================================
+   CAPTURE EXACT GREEN FRAME
+================================================== */
+
+function captureCrop() {
+
+  const video =
+    document.getElementById(
+      "video"
+    );
+
+
+  const scanner =
+    document.querySelector(
+      ".scanner-card"
+    );
+
+
+  const frame =
+    document.getElementById(
+      "scanFrame"
+    );
+
+
+  if (
+    !video ||
+    !scanner ||
+    !frame
+  ) {
+
+    console.error(
+      "Video / scanner / frame tidak ditemukan"
+    );
+
+    return null;
+
+  }
+
+
+  const vw =
+    video.videoWidth;
+
+
+  const vh =
+    video.videoHeight;
+
+
+  if (
+    !vw ||
+    !vh
+  ) {
+
+    console.error(
+      "Resolusi kamera belum tersedia"
+    );
+
+    return null;
+
+  }
+
+
+  const scannerRect =
+    scanner.getBoundingClientRect();
+
+
+  const frameRect =
+    frame.getBoundingClientRect();
+
+
+  const scannerW =
+    scannerRect.width;
+
+
+  const scannerH =
+    scannerRect.height;
+
+
+  const videoRatio =
+    vw / vh;
+
+
+  const scannerRatio =
+    scannerW / scannerH;
+
+
+  let renderedW;
+
+  let renderedH;
+
+  let offsetX;
+
+  let offsetY;
+
+
+  /*
+   * object-fit: cover
+   */
+
+  if (
+    videoRatio > scannerRatio
+  ) {
+
+    renderedH =
+      scannerH;
+
+
+    renderedW =
+      renderedH *
+      videoRatio;
+
+
+    offsetX =
+      (
+        renderedW -
+        scannerW
+      ) / 2;
+
+
+    offsetY = 0;
+
+  } else {
+
+    renderedW =
+      scannerW;
+
+
+    renderedH =
+      renderedW /
+      videoRatio;
+
+
+    offsetX = 0;
+
+
+    offsetY =
+      (
+        renderedH -
+        scannerH
+      ) / 2;
+
+  }
+
+
+  /*
+   * Posisi frame
+   */
+
+  const frameX =
+    frameRect.left -
+    scannerRect.left;
+
+
+  const frameY =
+    frameRect.top -
+    scannerRect.top;
+
+
+  /*
+   * Konversi posisi layar
+   * menjadi koordinat video
+   */
+
+  const sourceX =
+    (
+      frameX +
+      offsetX
+    ) /
+    renderedW *
+    vw;
+
+
+  const sourceY =
+    (
+      frameY +
+      offsetY
+    ) /
+    renderedH *
+    vh;
+
+
+  const sourceW =
+    frameRect.width /
+    renderedW *
+    vw;
+
+
+  const sourceH =
+    frameRect.height /
+    renderedH *
+    vh;
+
+
+  /*
+   * Clamp
+   */
+
+  const sx =
+    Math.max(
+      0,
+      Math.round(sourceX)
+    );
+
+
+  const sy =
+    Math.max(
+      0,
+      Math.round(sourceY)
+    );
+
+
+  const sw =
+    Math.min(
+      Math.round(sourceW),
+      vw - sx
+    );
+
+
+  const sh =
+    Math.min(
+      Math.round(sourceH),
+      vh - sy
+    );
+
+
+  /*
+   * Resize
+   */
+
+  const MAX_WIDTH = 420;
+
+
+  let outputW =
+    sw;
+
+
+  let outputH =
+    sh;
+
+
+  if (
+    outputW >
+    MAX_WIDTH
+  ) {
+
+    const ratio =
+      MAX_WIDTH /
+      outputW;
+
+
+    outputW =
+      Math.round(
+        outputW *
+        ratio
+      );
+
+
+    outputH =
+      Math.round(
+        outputH *
+        ratio
+      );
+
+  }
+
+
+  /*
+   * Canvas
+   */
+
+  const canvas =
+    document.createElement(
+      "canvas"
+    );
+
+
+  canvas.width =
+    outputW;
+
+
+  canvas.height =
+    outputH;
+
+
+  const ctx =
+    canvas.getContext(
+      "2d",
+      {
+        alpha: false,
+        willReadFrequently: false
+      }
+    );
+
+
+  /*
+   * Crop EXACT frame hijau
+   */
+
+  ctx.drawImage(
+
+    video,
+
+    sx,
+    sy,
+    sw,
+    sh,
+
+    0,
+    0,
+    outputW,
+    outputH
+
+  );
+
+
+  /*
+   * JPEG quality 30%
+   */
+
+  const imageData =
+    canvas.toDataURL(
+      "image/jpeg",
+      0.30
+    );
+
+
+  console.log(
+    "OCR crop:",
+    {
+      video:
+        `${vw}x${vh}`,
+
+      source:
+        `${sw}x${sh}`,
+
+      output:
+        `${outputW}x${outputH}`,
+
+      sizeKB:
+        Math.round(
+          imageData.length /
+          1024
+        )
+    }
+  );
+
+
+  return imageData;
+
+}
+
+
+/* ==================================================
+   SEND OCR
+================================================== */
+
+async function sendOCR(
+  image,
+  mode
+) {
+
+  try {
+
+    const response =
+      await fetch(
+        WEBAPP_URL,
+        {
+
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "text/plain;charset=utf-8"
+          },
+
+          body:
+            JSON.stringify({
+
+              mode:
+                mode,
+
+              image:
+                image
+
+            })
+
+        }
+      );
+
+
+    if (
+      !response.ok
+    ) {
+
+      throw new Error(
+        "HTTP " +
+        response.status
+      );
+
+    }
+
+
+    const result =
+      await response.json();
+
+
+    console.log(
+      "OCR result:",
+      result
+    );
+
+
+    return result;
+
+
+  } catch (error) {
+
+    console.error(
+      "OCR error:",
+      error
+    );
+
+
+    throw error;
+
+  }
+
+}
+
+
+/* ==================================================
+   SCAN NOMOR
+================================================== */
+
+async function scanNomor() {
+
+  try {
+
+    setLoading(
+      true,
+      "Membaca nomor AP..."
+    );
+
+
+    const image =
+      captureCrop();
+
+
+    if (!image) {
+
+      throw new Error(
+        "Gagal mengambil gambar"
+      );
+
+    }
+
+
+    const result =
+      await sendOCR(
+        image,
+        "number"
+      );
+
+
+    if (
+      result.success &&
+      result.nomorDokumen
+    ) {
+
+      nomorDokumen =
+        result.nomorDokumen;
+
+
+      hasil.textContent =
+        nomorDokumen;
+
+
+      statusElement.textContent =
+        "Nomor berhasil dibaca";
+
+
+      updateStats(
+        "scanned"
+      );
+
+
+      beep();
+
+      vibrate();
+
+
+      /*
+       * STEP 2
+       */
+
+      currentStep = 2;
+
+
+      if (stepTitle) {
+
+        stepTitle.textContent =
+          "Scan Vendor";
+
+      }
+
+
+      if (scanLabel) {
+
+        scanLabel.textContent =
+          "ARAHKAN NAMA VENDOR KE SINI";
+
+      }
+
+
+      scanButton.textContent =
+        "📷 SCAN VENDOR";
+
+
+      setFrameVendor();
+
+
+    } else {
+
+      statusElement.textContent =
+        "Nomor tidak terbaca. Coba lagi.";
+
+
+      beepError();
+
+    }
+
+
+  } catch (error) {
+
+    console.error(
+      error
+    );
+
+
+    statusElement.textContent =
+      "OCR gagal. Coba lagi.";
+
+  } finally {
+
+    setLoading(
+      false
+    );
+
+  }
+
+}
+
+
+/* ==================================================
+   SCAN VENDOR
+================================================== */
+
+async function scanVendor() {
+
+  try {
+
+    setLoading(
+      true,
+      "Membaca vendor..."
+    );
+
+
+    const image =
+      captureCrop();
+
+
+    if (!image) {
+
+      throw new Error(
+        "Gagal mengambil gambar"
+      );
+
+    }
+
+
+    const result =
+      await sendOCR(
+        image,
+        "vendor"
+      );
+
+
+    if (
+      result.success &&
+      result.vendor
+    ) {
+
+      vendor =
+        result.vendor;
+
+
+      vendorElement.textContent =
+        vendor;
+
+
+      statusElement.textContent =
+        "Vendor berhasil dibaca";
+
+
+      beep();
+
+      vibrate();
+
+
+      /*
+       * Langsung finalize
+       */
+
+      await finalizeDocument();
+
+
+    } else {
+
+      statusElement.textContent =
+        "Vendor tidak terbaca. Coba lagi.";
+
+
+      beepError();
+
+    }
+
+
+  } catch (error) {
+
+    console.error(
+      error
+    );
+
+
+    statusElement.textContent =
+      "OCR vendor gagal.";
+
+  } finally {
+
+    setLoading(
+      false
+    );
+
+  }
+
+}
+
+
+/* ==================================================
+   FINALIZE
+================================================== */
+
+async function finalizeDocument() {
+
+  try {
+
+    setLoading(
+      true,
+      "Menyimpan dokumen..."
+    );
+
+
+    const response =
+      await fetch(
+        WEBAPP_URL,
+        {
+
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "text/plain;charset=utf-8"
+          },
+
+          body:
+            JSON.stringify({
+
+              action:
+                "finalize",
+
+              nomorDokumen:
+                nomorDokumen,
+
+              vendor:
+                vendor
+
+            })
+
+        }
+      );
+
+
+    if (
+      !response.ok
+    ) {
+
+      throw new Error(
+        "HTTP " +
+        response.status
+      );
+
+    }
+
+
+    const result =
+      await response.json();
+
+
+    console.log(
+      "Finalize:",
+      result
+    );
+
+
+    if (
+      result.duplicate
+    ) {
+
+      statusElement.textContent =
+        "⚠️ DOKUMEN SUDAH ADA";
+
+
+      updateStats(
+        "duplicate"
+      );
+
+
+      currentStep = 3;
+
+
+      scanButton.textContent =
+        "📷 SCAN DOKUMEN BARU";
+
+
+      setFrameNumber();
+
+
+      return;
+
+    }
+
+
+    if (
+      result.success
+    ) {
+
+      statusElement.textContent =
+        "✅ SUDAH MASUK FILLING";
+
+
+      updateStats(
+        "berhasil"
+      );
+
+
+      currentStep = 3;
+
+
+      scanButton.textContent =
+        "📷 SCAN DOKUMEN BARU";
+
+
+      setFrameNumber();
+
+
+      return;
+
+    }
+
+
+    statusElement.textContent =
+      "Gagal menyimpan dokumen.";
+
+  } catch (error) {
+
+    console.error(
+      "Finalize error:",
+      error
+    );
+
+
+    statusElement.textContent =
+      "Gagal menyimpan.";
+
+  } finally {
+
+    setLoading(
+      false
+    );
+
+  }
+
+}
+
+
+/* ==================================================
+   FRAME NOMOR
+================================================== */
+
+function setFrameNumber() {
+
+  const frame =
+    document.getElementById(
+      "scanFrame"
+    );
+
+
+  const label =
+    document.getElementById(
+      "scanLabel"
+    );
+
+
+  if (frame) {
+
+    frame.style.left =
+      "17%";
+
+    frame.style.right =
+      "17%";
+
+    frame.style.top =
+      "38%";
+
+    frame.style.height =
+      "18%";
+
+  }
+
+
+  if (label) {
+
+    label.textContent =
+      "ARAHKAN NOMOR AP KE SINI";
+
+  }
+
+}
+
+
+/* ==================================================
+   FRAME VENDOR
+================================================== */
+
+function setFrameVendor() {
+
+  const frame =
+    document.getElementById(
+      "scanFrame"
+    );
+
+
+  const label =
+    document.getElementById(
+      "scanLabel"
+    );
+
+
+  if (frame) {
+
+    /*
+     * Vendor biasanya berada
+     * di area lebih lebar.
+     */
+
+    frame.style.left =
+      "10%";
+
+    frame.style.right =
+      "10%";
+
+    frame.style.top =
+      "43%";
+
+    frame.style.height =
+      "20%";
+
+  }
+
+
+  if (label) {
+
+    label.textContent =
+      "ARAHKAN NAMA VENDOR KE SINI";
+
+  }
+
+}
+
+
+/* ==================================================
+   RESET
+================================================== */
+
+function resetScanner() {
+
+  nomorDokumen = "";
+
+  vendor = "";
+
+  currentStep = 1;
+
+
+  if (hasil) {
+
+    hasil.textContent =
+      "-";
+
+  }
+
+
+  if (vendorElement) {
+
+    vendorElement.textContent =
+      "-";
+
+  }
+
+
+  if (statusElement) {
+
+    statusElement.textContent =
+      "Siap scan";
+
+  }
+
+
+  if (stepTitle) {
+
+    stepTitle.textContent =
+      "Scan Nomor AP";
+
+  }
+
+
+  if (scanButton) {
+
+    scanButton.textContent =
+      "📷 SCAN NOMOR AP";
+
+  }
+
+
+  setFrameNumber();
+
+}
+
+
+/* ==================================================
+   STATS
+================================================== */
+
+function updateStats(
+  type
+) {
+
+  const element =
+    document.getElementById(
+      type
+    );
+
+
+  if (!element) {
+    return;
+  }
+
+
+  const current =
+    parseInt(
+      element.textContent ||
+      "0",
+      10
+    );
+
+
+  element.textContent =
+    current + 1;
+
+}
+
+
+/* ==================================================
+   BEEP
+================================================== */
 
 function beep() {
 
@@ -1519,34 +1188,28 @@ function beep() {
 
 
     if (!AudioContext) {
-
       return;
-
     }
 
 
-    const audioContext =
+    const audio =
       new AudioContext();
 
 
     const oscillator =
-      audioContext.createOscillator();
+      audio.createOscillator();
 
 
     const gain =
-      audioContext.createGain();
+      audio.createGain();
 
 
     oscillator.frequency.value =
       900;
 
 
-    oscillator.type =
-      "sine";
-
-
     gain.gain.value =
-      0.15;
+      0.08;
 
 
     oscillator.connect(
@@ -1555,24 +1218,17 @@ function beep() {
 
 
     gain.connect(
-      audioContext.destination
+      audio.destination
     );
 
 
     oscillator.start();
 
 
-    setTimeout(
-      function() {
-
-        oscillator.stop();
-
-        audioContext.close();
-
-      },
-      120
+    oscillator.stop(
+      audio.currentTime +
+      0.08
     );
-
 
   } catch (error) {
 
@@ -1585,28 +1241,66 @@ function beep() {
 }
 
 
-/*************************************************
- * VIBRATE
- *************************************************/
+/* ==================================================
+   ERROR BEEP
+================================================== */
 
-function vibrate() {
+function beepError() {
 
   try {
 
-    if (
-      navigator.vibrate
-    ) {
+    const AudioContext =
+      window.AudioContext ||
+      window.webkitAudioContext;
 
-      navigator.vibrate(
-        100
-      );
 
+    if (!AudioContext) {
+      return;
     }
+
+
+    const audio =
+      new AudioContext();
+
+
+    const oscillator =
+      audio.createOscillator();
+
+
+    const gain =
+      audio.createGain();
+
+
+    oscillator.frequency.value =
+      300;
+
+
+    gain.gain.value =
+      0.08;
+
+
+    oscillator.connect(
+      gain
+    );
+
+
+    gain.connect(
+      audio.destination
+    );
+
+
+    oscillator.start();
+
+
+    oscillator.stop(
+      audio.currentTime +
+      0.15
+    );
 
   } catch (error) {
 
     console.log(
-      "Vibrate tidak tersedia"
+      "Error beep tidak tersedia"
     );
 
   }
@@ -1614,33 +1308,84 @@ function vibrate() {
 }
 
 
-/*************************************************
- * BUTTON EVENT
- *************************************************/
+/* ==================================================
+   VIBRATION
+================================================== */
 
-const scanButton =
-  document.getElementById(
-    "scanButton"
-  );
+function vibrate() {
 
+  if (
+    navigator.vibrate
+  ) {
 
-if (scanButton) {
+    navigator.vibrate(
+      80
+    );
 
-  scanButton.onclick =
-    handleScan;
+  }
 
 }
 
 
-/*************************************************
- * START
- *************************************************/
+/* ==================================================
+   BUTTON
+================================================== */
 
-startCamera();
+if (scanButton) {
+
+  scanButton.addEventListener(
+    "click",
+    async function() {
+
+      if (
+        currentStep === 1
+      ) {
+
+        await scanNomor();
+
+      } else if (
+        currentStep === 2
+      ) {
+
+        await scanVendor();
+
+      } else {
+
+        resetScanner();
+
+      }
+
+    }
+  );
+
+}
 
 
-/*************************************************
- * INITIAL STATS
- *************************************************/
+if (resetButton) {
 
-updateStats();
+  resetButton.addEventListener(
+    "click",
+    function() {
+
+      resetScanner();
+
+    }
+  );
+
+}
+
+
+/* ==================================================
+   INIT
+================================================== */
+
+document.addEventListener(
+  "DOMContentLoaded",
+  function() {
+
+    setFrameNumber();
+
+    startCamera();
+
+  }
+);
