@@ -1,0 +1,573 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100%;
+  background: #0b0d10;
+  color: white;
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif;
+}
+
+body {
+  min-height: 100vh;
+}
+
+
+/* =========================
+   APP
+========================= */
+
+.app {
+  width: 100%;
+  max-width: 650px;
+  margin: auto;
+  min-height: 100vh;
+  background: #111318;
+}
+
+
+/* =========================
+   HEADER
+========================= */
+
+.header {
+  height: 65px;
+  padding: 12px 18px;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  background: #171a20;
+
+  border-bottom:
+    1px solid #292e37;
+
+  position: sticky;
+  top: 0;
+
+  z-index: 50;
+}
+
+.header h1 {
+  margin: 0;
+
+  font-size: 19px;
+  font-weight: 800;
+}
+
+.header p {
+  margin: 3px 0 0;
+
+  font-size: 11px;
+
+  color: #8f98a8;
+}
+
+.connection-dot {
+  width: 11px;
+  height: 11px;
+
+  border-radius: 50%;
+
+  background: #22c55e;
+
+  box-shadow:
+    0 0 12px
+    rgba(34, 197, 94, .7);
+}
+
+
+/* =========================
+   CAMERA
+========================= */
+
+.camera-section {
+  position: relative;
+
+  width: 100%;
+
+  background: #000;
+
+  overflow: hidden;
+}
+
+#camera {
+  display: block;
+
+  width: 100%;
+
+  aspect-ratio: 4 / 3;
+
+  object-fit: cover;
+
+  background: #000;
+}
+
+
+/* =========================
+   CAMERA OVERLAY
+========================= */
+
+.camera-overlay {
+  position: absolute;
+
+  inset: 0;
+
+  pointer-events: none;
+}
+
+.top-info {
+  position: absolute;
+
+  top: 15px;
+  left: 15px;
+  right: 15px;
+
+  display: flex;
+
+  justify-content: space-between;
+  align-items: center;
+}
+
+.stage-label,
+.camera-status {
+  padding: 8px 12px;
+
+  border-radius: 20px;
+
+  background:
+    rgba(0, 0, 0, .65);
+
+  backdrop-filter:
+    blur(8px);
+
+  font-size: 12px;
+}
+
+.stage-label {
+  font-weight: 700;
+}
+
+
+/* =========================
+   FOCUS BOX
+========================= */
+
+.focus-box {
+  position: absolute;
+
+  left: 8%;
+  right: 8%;
+
+  top: 18%;
+  bottom: 18%;
+
+  border:
+    1px solid
+    rgba(255,255,255,.45);
+
+  border-radius: 10px;
+}
+
+.corner {
+  position: absolute;
+
+  width: 28px;
+  height: 28px;
+
+  border-color: white;
+}
+
+.tl {
+  top: -2px;
+  left: -2px;
+
+  border-top: 4px solid;
+  border-left: 4px solid;
+}
+
+.tr {
+  top: -2px;
+  right: -2px;
+
+  border-top: 4px solid;
+  border-right: 4px solid;
+}
+
+.bl {
+  bottom: -2px;
+  left: -2px;
+
+  border-bottom: 4px solid;
+  border-left: 4px solid;
+}
+
+.br {
+  bottom: -2px;
+  right: -2px;
+
+  border-bottom: 4px solid;
+  border-right: 4px solid;
+}
+
+
+/* =========================
+   INSTRUCTION
+========================= */
+
+.instruction {
+  text-align: center;
+
+  padding:
+    18px
+    18px
+    8px;
+}
+
+.instruction h2 {
+  margin: 0;
+
+  font-size: 16px;
+}
+
+.instruction p {
+  margin: 7px 0 0;
+
+  color: #9ca3af;
+
+  font-size: 13px;
+
+  line-height: 1.5;
+}
+
+
+/* =========================
+   CAMERA CONTROLS
+========================= */
+
+.camera-controls {
+  display: flex;
+
+  justify-content: center;
+  align-items: center;
+
+  padding: 12px 20px 22px;
+}
+
+.capture-button {
+  width: 78px;
+  height: 78px;
+
+  border-radius: 50%;
+
+  border:
+    5px solid white;
+
+  background: white;
+
+  box-shadow:
+    0 0 0 5px
+    rgba(255,255,255,.12),
+
+    0 5px 20px
+    rgba(0,0,0,.5);
+
+  cursor: pointer;
+
+  transition:
+    transform .12s ease;
+}
+
+.capture-button:active {
+  transform: scale(.88);
+}
+
+
+/* =========================
+   PREVIEW
+========================= */
+
+.preview-section {
+  padding: 18px;
+}
+
+.preview-section h2 {
+  margin:
+    0
+    0
+    12px;
+
+  font-size: 16px;
+}
+
+.preview-image {
+  display: block;
+
+  width: 100%;
+
+  max-height: 65vh;
+
+  object-fit: contain;
+
+  border-radius: 10px;
+
+  background: black;
+}
+
+.preview-actions {
+  display: flex;
+
+  gap: 10px;
+
+  margin-top: 14px;
+}
+
+
+/* =========================
+   BUTTON
+========================= */
+
+.button {
+  flex: 1;
+
+  border: 0;
+
+  border-radius: 10px;
+
+  padding: 14px;
+
+  font-size: 14px;
+
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+.button.primary {
+  background: #2563eb;
+  color: white;
+}
+
+.button.secondary {
+  background: #303641;
+  color: white;
+}
+
+.button.success {
+  background: #16a34a;
+  color: white;
+}
+
+.button:disabled {
+  opacity: .45;
+}
+
+
+/* =========================
+   STATUS
+========================= */
+
+.save-status {
+  margin: 12px 18px;
+
+  padding: 13px;
+
+  border-radius: 10px;
+
+  text-align: center;
+
+  font-size: 13px;
+
+  line-height: 1.5;
+}
+
+.save-status.success {
+  background:
+    rgba(34,197,94,.12);
+
+  border:
+    1px solid
+    rgba(34,197,94,.3);
+
+  color: #86efac;
+}
+
+.save-status.error {
+  background:
+    rgba(239,68,68,.12);
+
+  border:
+    1px solid
+    rgba(239,68,68,.3);
+
+  color: #fca5a5;
+}
+
+.save-status.loading {
+  background:
+    rgba(59,130,246,.12);
+
+  border:
+    1px solid
+    rgba(59,130,246,.3);
+
+  color: #93c5fd;
+}
+
+
+/* =========================
+   QUEUE
+========================= */
+
+.queue-section {
+  padding: 16px;
+
+  border-top:
+    1px solid #242832;
+}
+
+.queue-header {
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  margin-bottom: 10px;
+}
+
+.queue-header h2 {
+  margin: 0;
+
+  font-size: 15px;
+}
+
+.queue-header span {
+  font-size: 11px;
+
+  color: #737b89;
+}
+
+.queue-list {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 8px;
+}
+
+.queue-item {
+  padding: 11px;
+
+  background: #171a20;
+
+  border:
+    1px solid #292e37;
+
+  border-radius: 9px;
+}
+
+.queue-top {
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  gap: 8px;
+}
+
+.queue-number {
+  font-size: 13px;
+
+  font-weight: 700;
+}
+
+.queue-status {
+  padding: 4px 8px;
+
+  border-radius: 20px;
+
+  font-size: 10px;
+
+  background: #303641;
+}
+
+.queue-status.done {
+  color: #86efac;
+
+  background:
+    rgba(34,197,94,.12);
+}
+
+.queue-status.process {
+  color: #93c5fd;
+
+  background:
+    rgba(59,130,246,.12);
+}
+
+.queue-status.error {
+  color: #fca5a5;
+
+  background:
+    rgba(239,68,68,.12);
+}
+
+.queue-detail {
+  margin-top: 7px;
+
+  color: #929aa8;
+
+  font-size: 11px;
+}
+
+.empty-queue {
+  padding: 20px;
+
+  text-align: center;
+
+  color: #6b7280;
+
+  font-size: 12px;
+}
+
+
+/* =========================
+   HIDDEN
+========================= */
+
+.hidden {
+  display: none !important;
+}
+
+
+/* =========================
+   MOBILE
+========================= */
+
+@media (max-width: 500px) {
+
+  .header {
+    height: 60px;
+  }
+
+  #camera {
+    aspect-ratio: 3 / 4;
+  }
+
+  .focus-box {
+    left: 6%;
+    right: 6%;
+  }
+
+}
