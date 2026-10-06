@@ -1,1297 +1,198 @@
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
-
   <meta charset="UTF-8">
 
   <meta
     name="viewport"
-    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    content="width=device-width, initial-scale=1.0"
   >
 
-  <meta
-    name="theme-color"
-    content="#070a0d"
+  <title>SCAN PV</title>
+
+  <link
+    rel="stylesheet"
+    href="style.css"
   >
-
-  <title>AP Scanner</title>
-
-
-  <style>
-
-    /* =================================================
-       RESET
-    ================================================= */
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-
-    html,
-    body {
-      width: 100%;
-      min-height: 100%;
-      background: #070a0d;
-      color: #ffffff;
-      font-family:
-        -apple-system,
-        BlinkMacSystemFont,
-        "SF Pro Display",
-        "Segoe UI",
-        sans-serif;
-    }
-
-
-    body {
-      overflow-x: hidden;
-    }
-
-
-    button {
-      font-family: inherit;
-    }
-
-
-    /* =================================================
-       APP
-    ================================================= */
-
-    .app {
-      width: 100%;
-      max-width: 520px;
-      min-height: 100vh;
-      margin: 0 auto;
-
-      background:
-        radial-gradient(
-          circle at 50% -10%,
-          rgba(0, 255, 136, 0.10),
-          transparent 35%
-        ),
-        #070a0d;
-
-      position: relative;
-    }
-
-
-    /* =================================================
-       HEADER
-    ================================================= */
-
-    .header {
-      padding:
-        calc(env(safe-area-inset-top) + 18px)
-        20px
-        14px;
-
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 11px;
-    }
-
-
-    .brand-icon {
-      width: 38px;
-      height: 38px;
-
-      border-radius: 12px;
-
-      display: flex;
-      align-items: center;
-      justify-content: center;
-
-      background:
-        linear-gradient(
-          145deg,
-          #00ff88,
-          #00c96a
-        );
-
-      color: #03150d;
-
-      font-size: 19px;
-      font-weight: 900;
-
-      box-shadow:
-        0 8px 25px
-        rgba(0, 255, 136, 0.20);
-    }
-
-
-    .brand-text h1 {
-      font-size: 17px;
-      font-weight: 800;
-      letter-spacing: -0.3px;
-    }
-
-
-    .brand-text span {
-      display: block;
-
-      margin-top: 2px;
-
-      color: #69727b;
-
-      font-size: 10px;
-      font-weight: 600;
-
-      letter-spacing: 1.2px;
-      text-transform: uppercase;
-    }
-
-
-    .online {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-
-      padding: 7px 10px;
-
-      border-radius: 20px;
-
-      background:
-        rgba(255,255,255,0.04);
-
-      border:
-        1px solid rgba(255,255,255,0.06);
-
-      color: #7d878f;
-
-      font-size: 10px;
-      font-weight: 700;
-    }
-
-
-    .online-dot {
-      width: 6px;
-      height: 6px;
-
-      border-radius: 50%;
-
-      background: #00ff88;
-
-      box-shadow:
-        0 0 9px
-        rgba(0,255,136,0.8);
-    }
-
-
-    /* =================================================
-       STEP INDICATOR
-    ================================================= */
-
-    .step-area {
-      padding: 0 20px 14px;
-    }
-
-
-    .step-card {
-      display: flex;
-      align-items: center;
-
-      padding: 10px 12px;
-
-      border-radius: 16px;
-
-      background:
-        rgba(255,255,255,0.035);
-
-      border:
-        1px solid rgba(255,255,255,0.055);
-    }
-
-
-    .step {
-      flex: 1;
-
-      display: flex;
-      align-items: center;
-      gap: 8px;
-
-      color: #525b63;
-
-      font-size: 10px;
-      font-weight: 800;
-
-      letter-spacing: 0.4px;
-    }
-
-
-    .step-number {
-      width: 25px;
-      height: 25px;
-
-      flex-shrink: 0;
-
-      border-radius: 50%;
-
-      display: flex;
-      align-items: center;
-      justify-content: center;
-
-      background: #151a1e;
-
-      border:
-        1px solid #252d33;
-
-      font-size: 10px;
-    }
-
-
-    .step.active {
-      color: #ffffff;
-    }
-
-
-    .step.active .step-number {
-      background: #00ff88;
-      border-color: #00ff88;
-      color: #03150d;
-
-      box-shadow:
-        0 0 18px
-        rgba(0,255,136,0.20);
-    }
-
-
-    .step.done {
-      color: #00d977;
-    }
-
-
-    .step.done .step-number {
-      background:
-        rgba(0,255,136,0.10);
-
-      border-color:
-        rgba(0,255,136,0.35);
-
-      color: #00ff88;
-    }
-
-
-    .step-line {
-      width: 22px;
-      height: 1px;
-
-      background:
-        #252c32;
-
-      margin: 0 8px;
-    }
-
-
-    /* =================================================
-       SCANNER
-    ================================================= */
-
-    .scanner-card {
-      position: relative;
-
-      margin: 0 16px;
-
-      height: 380px;
-
-      overflow: hidden;
-
-      border-radius: 26px;
-
-      background: #11161a;
-
-      border:
-        1px solid
-        rgba(255,255,255,0.08);
-
-      box-shadow:
-        0 25px 60px
-        rgba(0,0,0,0.45);
-    }
-
-
-    #video {
-      position: absolute;
-
-      inset: 0;
-
-      width: 100%;
-      height: 100%;
-
-      object-fit: cover;
-
-      background: #0b0e11;
-    }
-
-
-    /* =================================================
-       CAMERA OVERLAY
-    ================================================= */
-
-    .camera-overlay {
-      position: absolute;
-
-      inset: 0;
-
-      pointer-events: none;
-
-      background:
-        linear-gradient(
-          to bottom,
-          rgba(0,0,0,0.28),
-          transparent 25%,
-          transparent 75%,
-          rgba(0,0,0,0.40)
-        );
-    }
-
-
-    /* =================================================
-       SCAN LABEL
-    ================================================= */
-
-    .scan-label {
-      position: absolute;
-
-      top: 18px;
-      left: 50%;
-
-      transform:
-        translateX(-50%);
-
-      z-index: 5;
-
-      white-space: nowrap;
-
-      padding: 9px 15px;
-
-      border-radius: 20px;
-
-      background:
-        rgba(4,8,7,0.72);
-
-      border:
-        1px solid
-        rgba(0,255,136,0.25);
-
-      backdrop-filter:
-        blur(12px);
-
-      -webkit-backdrop-filter:
-        blur(12px);
-
-      color: #00ff88;
-
-      font-size: 10px;
-      font-weight: 800;
-
-      letter-spacing: 0.8px;
-    }
-
-
-    /* =================================================
-       SMALL SCAN FRAME
-    ================================================= */
-
-    .scan-frame {
-      position: absolute;
-
-      left: 17%;
-      right: 17%;
-
-      top: 38%;
-
-      height: 18%;
-
-      z-index: 4;
-
-      border:
-        2px solid
-        rgba(0,255,136,0.95);
-
-      border-radius: 16px;
-
-      box-shadow:
-        0 0 0 9999px
-        rgba(0,0,0,0.28),
-        0 0 22px
-        rgba(0,255,136,0.10);
-
-      pointer-events: none;
-    }
-
-
-    /* corner accents */
-
-    .scan-frame::before,
-    .scan-frame::after {
-      content: "";
-
-      position: absolute;
-
-      width: 18px;
-      height: 18px;
-
-      border-color: #00ff88;
-      border-style: solid;
-    }
-
-
-    .scan-frame::before {
-      top: -2px;
-      left: -2px;
-
-      border-width: 3px 0 0 3px;
-
-      border-radius:
-        13px 0 0 0;
-    }
-
-
-    .scan-frame::after {
-      right: -2px;
-      bottom: -2px;
-
-      border-width: 0 3px 3px 0;
-
-      border-radius:
-        0 0 13px 0;
-    }
-
-
-    /* =================================================
-       CAMERA FOOTER
-    ================================================= */
-
-    .camera-tip {
-      position: absolute;
-
-      bottom: 16px;
-
-      left: 50%;
-
-      transform:
-        translateX(-50%);
-
-      z-index: 5;
-
-      white-space: nowrap;
-
-      color:
-        rgba(255,255,255,0.55);
-
-      font-size: 9px;
-
-      letter-spacing: 0.3px;
-    }
-
-
-    /* =================================================
-       RESULT CARD
-    ================================================= */
-
-    .result-card {
-      margin: 16px;
-
-      padding: 18px;
-
-      border-radius: 22px;
-
-      background:
-        linear-gradient(
-          145deg,
-          rgba(255,255,255,0.055),
-          rgba(255,255,255,0.025)
-        );
-
-      border:
-        1px solid
-        rgba(255,255,255,0.07);
-
-      box-shadow:
-        0 15px 40px
-        rgba(0,0,0,0.20);
-    }
-
-
-    .result-title {
-      margin-bottom: 14px;
-
-      color: #68727a;
-
-      font-size: 9px;
-      font-weight: 800;
-
-      letter-spacing: 1.4px;
-
-      text-transform: uppercase;
-    }
-
-
-    .result-row {
-      display: flex;
-      align-items: center;
-
-      min-height: 55px;
-
-      padding: 10px 0;
-    }
-
-
-    .result-row + .result-row {
-      border-top:
-        1px solid
-        rgba(255,255,255,0.055);
-    }
-
-
-    .result-icon {
-      width: 35px;
-      height: 35px;
-
-      margin-right: 12px;
-
-      border-radius: 11px;
-
-      display: flex;
-      align-items: center;
-      justify-content: center;
-
-      background:
-        rgba(0,255,136,0.07);
-
-      color: #00ff88;
-
-      font-size: 14px;
-    }
-
-
-    .result-info {
-      min-width: 0;
-      flex: 1;
-    }
-
-
-    .result-label {
-      color: #59636b;
-
-      font-size: 9px;
-      font-weight: 700;
-
-      letter-spacing: 0.7px;
-
-      text-transform: uppercase;
-    }
-
-
-    .result-value {
-      margin-top: 4px;
-
-      color: #ffffff;
-
-      font-size: 15px;
-      font-weight: 750;
-
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-
-    #status {
-      margin-top: 12px;
-
-      color: #00ff88;
-
-      font-size: 10px;
-      font-weight: 700;
-
-      letter-spacing: 0.4px;
-    }
-
-
-    /* =================================================
-       SCAN BUTTON
-    ================================================= */
-
-    .button-area {
-      padding: 0 16px;
-    }
-
-
-    #scanButton {
-      width: 100%;
-
-      height: 58px;
-
-      border: 0;
-
-      border-radius: 18px;
-
-      background:
-        linear-gradient(
-          135deg,
-          #00ff88,
-          #00d977
-        );
-
-      color: #03150d;
-
-      font-size: 13px;
-      font-weight: 900;
-
-      letter-spacing: 0.5px;
-
-      cursor: pointer;
-
-      box-shadow:
-        0 12px 30px
-        rgba(0,255,136,0.18);
-
-      transition:
-        transform 0.15s ease,
-        opacity 0.15s ease;
-    }
-
-
-    #scanButton:active {
-      transform: scale(0.98);
-    }
-
-
-    #scanButton:disabled {
-      opacity: 0.55;
-      cursor: not-allowed;
-    }
-
-
-    #resetButton {
-      width: 100%;
-
-      height: 45px;
-
-      margin-top: 9px;
-
-      display: none;
-
-      border:
-        1px solid
-        rgba(255,255,255,0.08);
-
-      border-radius: 15px;
-
-      background:
-        rgba(255,255,255,0.035);
-
-      color: #aab2b8;
-
-      font-size: 11px;
-      font-weight: 700;
-    }
-
-
-    /* =================================================
-       STATS
-    ================================================= */
-
-    .stats {
-      display: grid;
-
-      grid-template-columns:
-        repeat(3, 1fr);
-
-      gap: 9px;
-
-      padding:
-        16px 16px 25px;
-    }
-
-
-    .stat-card {
-      padding: 14px 10px;
-
-      text-align: center;
-
-      border-radius: 16px;
-
-      background:
-        rgba(255,255,255,0.025);
-
-      border:
-        1px solid
-        rgba(255,255,255,0.055);
-    }
-
-
-    .stat-number {
-      color: #ffffff;
-
-      font-size: 20px;
-      font-weight: 850;
-    }
-
-
-    .stat-label {
-      margin-top: 4px;
-
-      color: #555f67;
-
-      font-size: 8px;
-      font-weight: 800;
-
-      letter-spacing: 0.8px;
-
-      text-transform: uppercase;
-    }
-
-
-    /* =================================================
-       LOADING
-    ================================================= */
-
-    #loading {
-      position: fixed;
-
-      inset: 0;
-
-      z-index: 9999;
-
-      display: none;
-
-      align-items: center;
-      justify-content: center;
-
-      padding: 25px;
-
-      background:
-        rgba(3,6,8,0.72);
-
-      backdrop-filter:
-        blur(14px);
-
-      -webkit-backdrop-filter:
-        blur(14px);
-    }
-
-
-    .loading-box {
-      width: 180px;
-
-      padding: 25px 20px;
-
-      text-align: center;
-
-      border-radius: 22px;
-
-      background:
-        rgba(18,23,27,0.95);
-
-      border:
-        1px solid
-        rgba(255,255,255,0.08);
-
-      box-shadow:
-        0 25px 60px
-        rgba(0,0,0,0.45);
-    }
-
-
-    .loading-spinner {
-      width: 30px;
-      height: 30px;
-
-      margin:
-        0 auto 14px;
-
-      border-radius: 50%;
-
-      border:
-        3px solid
-        rgba(0,255,136,0.15);
-
-      border-top-color:
-        #00ff88;
-
-      animation:
-        spin 0.75s linear infinite;
-    }
-
-
-    .loading-text {
-      color: #dbe2e6;
-
-      font-size: 11px;
-      font-weight: 700;
-    }
-
-
-    @keyframes spin {
-
-      to {
-        transform:
-          rotate(360deg);
-      }
-
-    }
-
-
-    /* =================================================
-       FOOTER
-    ================================================= */
-
-    .footer {
-      padding:
-        0 20px 25px;
-
-      text-align: center;
-
-      color: #343c42;
-
-      font-size: 8px;
-
-      letter-spacing: 1px;
-
-      text-transform: uppercase;
-    }
-
-
-    /* =================================================
-       RESPONSIVE
-    ================================================= */
-
-    @media (max-height: 700px) {
-
-      .scanner-card {
-        height: 320px;
-      }
-
-      .header {
-        padding-top:
-          calc(env(safe-area-inset-top) + 12px);
-      }
-
-    }
-
-
-    @media (min-width: 600px) {
-
-      .app {
-        margin-top: 20px;
-
-        border-radius: 30px;
-
-        overflow: hidden;
-
-        min-height:
-          calc(100vh - 40px);
-      }
-
-    }
-
-  </style>
-
 </head>
-
 
 <body>
 
-
   <main class="app">
 
-
-    <!-- =============================================
-         HEADER
-    ============================================== -->
-
+    <!-- HEADER -->
     <header class="header">
 
-      <div class="brand">
-
-        <div class="brand-icon">
-          AP
-        </div>
-
-        <div class="brand-text">
-
-          <h1>AP Scanner</h1>
-
-          <span>
-            Filling Document System
-          </span>
-
-        </div>
-
+      <div>
+        <h1>SCAN PV</h1>
+        <p>Payment Voucher Scanner</p>
       </div>
 
-
-      <div class="online">
-
-        <span class="online-dot"></span>
-
-        READY
-
-      </div>
+      <div
+        id="connectionDot"
+        class="connection-dot"
+      ></div>
 
     </header>
 
 
-    <!-- =============================================
-         STEP
-    ============================================== -->
-
-    <section class="step-area">
-
-      <div class="step-card">
-
-        <div
-          class="step active"
-          id="step1"
-        >
-
-          <div class="step-number">
-            1
-          </div>
-
-          <span>
-            NOMOR
-          </span>
-
-        </div>
-
-
-        <div class="step-line"></div>
-
-
-        <div
-          class="step"
-          id="step2"
-        >
-
-          <div class="step-number">
-            2
-          </div>
-
-          <span>
-            VENDOR
-          </span>
-
-        </div>
-
-
-        <div class="step-line"></div>
-
-
-        <div
-          class="step"
-          id="step3"
-        >
-
-          <div class="step-number">
-            ✓
-          </div>
-
-          <span>
-            SELESAI
-          </span>
-
-        </div>
-
-      </div>
-
-    </section>
-
-
-    <!-- =============================================
-         SCANNER
-    ============================================== -->
-
-    <section class="scanner-card">
-
+    <!-- CAMERA -->
+    <section class="camera-section">
 
       <video
-        id="video"
+        id="camera"
         autoplay
         playsinline
         muted
       ></video>
 
+      <div class="camera-overlay">
 
-      <div class="camera-overlay"></div>
+        <div class="top-info">
 
-
-      <div
-        class="scan-label"
-        id="scanLabel"
-      >
-        ARAHKAN NOMOR DOKUMEN KE SINI
-      </div>
-
-
-      <div
-        class="scan-frame"
-        id="scanFrame"
-      ></div>
-
-
-      <div class="camera-tip">
-        Pastikan tulisan terlihat jelas di dalam frame
-      </div>
-
-
-    </section>
-
-
-    <!-- =============================================
-         RESULT
-    ============================================== -->
-
-    <section class="result-card">
-
-      <div class="result-title">
-        Document Information
-      </div>
-
-
-      <div class="result-row">
-
-        <div class="result-icon">
-          #
-        </div>
-
-        <div class="result-info">
-
-          <div class="result-label">
-            Nomor Dokumen
-          </div>
-
-          <div
-            class="result-value"
-            id="hasil"
+          <span
+            id="stageLabel"
+            class="stage-label"
           >
-            -
-          </div>
+            📄 FOTO PV
+          </span>
 
-        </div>
-
-      </div>
-
-
-      <div class="result-row">
-
-        <div class="result-icon">
-          V
-        </div>
-
-        <div class="result-info">
-
-          <div class="result-label">
-            Vendor
-          </div>
-
-          <div
-            class="result-value"
-            id="vendor"
+          <span
+            id="cameraStatus"
+            class="camera-status"
           >
-            -
-          </div>
+            Kamera
+          </span>
 
         </div>
 
-      </div>
 
+        <div class="focus-box">
 
-      <div
-        id="status"
-      >
-        Siap scan
+          <span class="corner tl"></span>
+          <span class="corner tr"></span>
+          <span class="corner bl"></span>
+          <span class="corner br"></span>
+
+        </div>
+
       </div>
 
     </section>
 
 
-    <!-- =============================================
-         BUTTON
-    ============================================== -->
+    <!-- INSTRUCTION -->
+    <section class="instruction">
 
-    <section class="button-area">
+      <h2 id="instructionTitle">
+        Foto Payment Voucher
+      </h2>
+
+      <p id="instructionText">
+        Arahkan kamera ke dokumen PV lalu tekan tombol kamera.
+      </p>
+
+    </section>
+
+
+    <!-- CAMERA BUTTON -->
+    <section
+      id="cameraControls"
+      class="camera-controls"
+    >
 
       <button
-        id="scanButton"
-        type="button"
+        id="captureButton"
+        class="capture-button"
       >
-        📷 SCAN NOMOR
-      </button>
-
-
-      <button
-        id="resetButton"
-        type="button"
-        onclick="resetScanner()"
-      >
-        ↻ SCAN DOKUMEN BARU
       </button>
 
     </section>
 
 
-    <!-- =============================================
-         STATS
-    ============================================== -->
+    <!-- PREVIEW -->
+    <section
+      id="previewSection"
+      class="preview-section hidden"
+    >
 
-    <section class="stats">
+      <h2 id="previewTitle">
+        Preview
+      </h2>
 
-      <div class="stat-card">
+      <img
+        id="previewImage"
+        class="preview-image"
+        alt="Preview"
+      >
 
-        <div
-          class="stat-number"
-          id="scanned"
+      <div class="preview-actions">
+
+        <button
+          id="retakeButton"
+          class="button secondary"
         >
-          0
-        </div>
+          🔄 Ulangi
+        </button>
 
-        <div class="stat-label">
-          Scanned
-        </div>
-
-      </div>
-
-
-      <div class="stat-card">
-
-        <div
-          class="stat-number"
-          id="berhasil"
+        <button
+          id="nextButton"
+          class="button primary"
         >
-          0
-        </div>
-
-        <div class="stat-label">
-          Berhasil
-        </div>
-
-      </div>
-
-
-      <div class="stat-card">
-
-        <div
-          class="stat-number"
-          id="duplicate"
-        >
-          0
-        </div>
-
-        <div class="stat-label">
-          Duplikat
-        </div>
+          Lanjut
+        </button>
 
       </div>
 
     </section>
 
 
-    <div class="footer">
-      AP Scanner • Fast Filling System
-    </div>
+    <!-- SAVE STATUS -->
+    <div
+      id="saveStatus"
+      class="save-status hidden"
+    ></div>
+
+
+    <!-- OCR QUEUE -->
+    <section class="queue-section">
+
+      <div class="queue-header">
+
+        <h2>
+          ⚙️ Status OCR
+        </h2>
+
+        <span>
+          otomatis
+        </span>
+
+      </div>
+
+      <div
+        id="queueList"
+        class="queue-list"
+      >
+
+        <div class="empty-queue">
+          Belum ada scan.
+        </div>
+
+      </div>
+
+    </section>
 
 
   </main>
 
 
-  <!-- =============================================
-       LOADING
-  ============================================== -->
-
-  <div id="loading">
-
-    <div class="loading-box">
-
-      <div class="loading-spinner"></div>
-
-      <div class="loading-text">
-        Membaca dokumen...
-      </div>
-
-    </div>
-
-  </div>
+  <canvas
+    id="canvas"
+    hidden
+  ></canvas>
 
 
-  <!-- =============================================
-       SCRIPT
-  ============================================== -->
-
-  <script src="script.js?v=5"></script>
-
-
-  <script>
-
-    /*
-     * Update tampilan step secara otomatis
-     * tanpa mengganggu logic scanner.
-     */
-
-    const stepObserver =
-      new MutationObserver(() => {
-
-        const hasil =
-          document.getElementById("hasil");
-
-        const step1 =
-          document.getElementById("step1");
-
-        const step2 =
-          document.getElementById("step2");
-
-        const step3 =
-          document.getElementById("step3");
-
-
-        if (
-          hasil &&
-          hasil.textContent !== "-"
-        ) {
-
-          step1.classList.remove("active");
-
-          step1.classList.add("done");
-
-          step2.classList.add("active");
-
-        }
-
-      });
-
-
-    const hasilElement =
-      document.getElementById("hasil");
-
-
-    if (hasilElement) {
-
-      stepObserver.observe(
-        hasilElement,
-        {
-          childList: true,
-          subtree: true,
-          characterData: true
-        }
-      );
-
-    }
-
-  </script>
-
+  <script src="app.js"></script>
 
 </body>
-
 </html>
