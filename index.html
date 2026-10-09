@@ -1,198 +1,117 @@
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  >
-
-  <title>SCAN PV</title>
-
-  <link
-    rel="stylesheet"
-    href="style.css"
-  >
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0b0d10">
+  <title>SCAN PAYMENT VOUCHER</title>
+  <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
-
   <main class="app">
 
-    <!-- HEADER -->
     <header class="header">
-
-      <div>
-        <h1>SCAN PV</h1>
-        <p>Payment Voucher Scanner</p>
+      <div class="brand">
+        <div class="brand-icon">PV</div>
+        <div>
+          <h1>SCAN PAYMENT VOUCHER</h1>
+          <p>PV Number Scanner · Awalan 3400</p>
+        </div>
       </div>
-
-      <div
-        id="connectionDot"
-        class="connection-dot"
-      ></div>
-
+      <span id="connectionDot" class="connection-dot"></span>
     </header>
 
-
-    <!-- CAMERA -->
     <section class="camera-section">
-
-      <video
-        id="camera"
-        autoplay
-        playsinline
-        muted
-      ></video>
+      <video id="camera" autoplay playsinline muted></video>
 
       <div class="camera-overlay">
-
         <div class="top-info">
-
-          <span
-            id="stageLabel"
-            class="stage-label"
-          >
-            📄 FOTO PV
-          </span>
-
-          <span
-            id="cameraStatus"
-            class="camera-status"
-          >
-            Kamera
-          </span>
-
+          <span class="stage-label">📄 PAYMENT VOUCHER</span>
+          <span id="cameraStatus" class="camera-status">Menyiapkan kamera</span>
         </div>
 
-
         <div class="focus-box">
-
           <span class="corner tl"></span>
           <span class="corner tr"></span>
           <span class="corner bl"></span>
           <span class="corner br"></span>
-
+          <div class="focus-hint">Arahkan nomor PV ke area ini</div>
         </div>
-
       </div>
-
     </section>
 
-
-    <!-- INSTRUCTION -->
     <section class="instruction">
-
-      <h2 id="instructionTitle">
-        Foto Payment Voucher
-      </h2>
-
+      <h2 id="instructionTitle">Foto Payment Voucher</h2>
       <p id="instructionText">
-        Arahkan kamera ke dokumen PV lalu tekan tombol kamera.
+        Pastikan nomor PV dengan awalan 3400 terlihat jelas.
       </p>
-
     </section>
 
-
-    <!-- CAMERA BUTTON -->
-    <section
-      id="cameraControls"
-      class="camera-controls"
-    >
-
-      <button
-        id="captureButton"
-        class="capture-button"
-      >
+    <section id="cameraControls" class="camera-controls">
+      <button id="captureButton" class="capture-button"
+              aria-label="Ambil foto PV">
+        <span></span>
       </button>
-
+      <p>Ketuk untuk mengambil foto</p>
     </section>
 
-
-    <!-- PREVIEW -->
-    <section
-      id="previewSection"
-      class="preview-section hidden"
-    >
-
-      <h2 id="previewTitle">
-        Preview
-      </h2>
-
-      <img
-        id="previewImage"
-        class="preview-image"
-        alt="Preview"
-      >
+    <section id="previewSection" class="preview-section hidden">
+      <h2>Periksa Foto PV</h2>
+      <img id="previewImage" class="preview-image" alt="Preview foto PV">
 
       <div class="preview-actions">
-
-        <button
-          id="retakeButton"
-          class="button secondary"
-        >
-          🔄 Ulangi
+        <button id="retakeButton" class="button secondary">
+          ↻ Ulangi Foto
         </button>
-
-        <button
-          id="nextButton"
-          class="button primary"
-        >
-          Lanjut
+        <button id="nextButton" class="button primary">
+          🔎 Baca Nomor PV
         </button>
-
       </div>
-
     </section>
 
+    <section id="resultSection" class="result-section hidden">
+      <span class="result-label">NOMOR PAYMENT VOUCHER</span>
+      <div id="latestNumber" class="latest-number">—</div>
+      <button id="copyLatestButton" class="button secondary">
+        📋 Salin Nomor
+      </button>
+    </section>
 
-    <!-- SAVE STATUS -->
-    <div
-      id="saveStatus"
-      class="save-status hidden"
-    ></div>
+    <div id="saveStatus" class="save-status hidden"
+         role="status" aria-live="polite"></div>
 
-
-    <!-- OCR QUEUE -->
     <section class="queue-section">
-
       <div class="queue-header">
-
-        <h2>
-          ⚙️ Status OCR
-        </h2>
-
-        <span>
-          otomatis
-        </span>
-
-      </div>
-
-      <div
-        id="queueList"
-        class="queue-list"
-      >
-
-        <div class="empty-queue">
-          Belum ada scan.
+        <div>
+          <h2>Hasil Scan PV</h2>
+          <p>Daftar sementara selama halaman terbuka</p>
         </div>
-
+        <span id="scanCounter" class="scan-counter">0 PV</span>
       </div>
 
+      <div id="queueList" class="queue-list">
+        <div class="empty-queue">Belum ada PV yang dipindai.</div>
+      </div>
+
+      <div class="queue-actions">
+        <button id="copyAllButton" class="button secondary">
+          📋 Salin Semua Nomor
+        </button>
+        <button id="clearButton" class="button danger">
+          Hapus Daftar
+        </button>
+      </div>
     </section>
 
+    <footer class="footer">
+      <span>SCAN PV</span>
+      <span>Nomor awalan 3400 saja</span>
+    </footer>
 
   </main>
 
-
-  <canvas
-    id="canvas"
-    hidden
-  ></canvas>
-
-
+  <canvas id="canvas" hidden></canvas>
   <script src="app.js"></script>
-
 </body>
 </html>
