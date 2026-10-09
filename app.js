@@ -1,132 +1,119 @@
 
-/*************************************************
- * SCAN PV 34 — FRONTEND
- * Kompatibel dengan index.html yang dikirim
- *
- * FITUR:
- * - Kamera belakang
- * - Foto langsung dari kamera
- * - Preview sebelum OCR
- * - OCR hanya nomor PV awalan 34
- * - Bisa scan banyak PV secara berurutan
- * - Tidak menyimpan foto
- * - Tidak menyimpan hasil ke Google Sheets
- * - Tidak ada scan vendor
- *************************************************/
+"use strict";
 
-// ================================================
-// CONFIG
-// ================================================
+/*************************************************
+ * SCAN PAYMENT VOUCHER ONLY
+ * Target nomor: 3400...
+ * Tidak menyimpan foto atau hasil ke server database
+ *************************************************/
 
 const WEBAPP_URL =
   "https://script.google.com/macros/s/AKfycbzg0Q5slomCGANi1AD6G4PRNmBOH154c7CZnjqosoU5O6znIlXcxKm3tytai6uD-wjcnA/exec";
 
-const PV_PREFIX = "34";
-
-// ================================================
-// ELEMENT
-// ================================================
+const PV_PREFIX = "3400";
 
 const camera = document.getElementById("camera");
 const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
 
-const captureButton =
-  document.getElementById("captureButton");
+const captureButton = document.getElementById("captureButton");
+const retakeButton = document.getElementById("retakeButton");
+const nextButton = document.getElementById("nextButton");
 
-const retakeButton =
-  document.getElementById("retakeButton");
+const cameraControls = document.getElementById("cameraControls");
+const previewSection = document.getElementById("previewSection");
+const previewImage = document.getElementById("previewImage");
 
-const nextButton =
-  document.getElementById("nextButton");
+const saveStatus = document.getElementById("saveStatus");
+const queueList = document.getElementById("queueList");
+const scanCounter = document.getElementById("scanCounter");
 
-const cameraControls =
-  document.getElementById("cameraControls");
+const latestNumber = document.getElementById("latestNumber");
+const resultSection = document.getElementById("resultSection");
+const copyLatestButton = document.getElementById("copyLatestButton");
+const copyAllButton = document.getElementById("copyAllButton");
+const clearButton = document.getElementById("clearButton");
 
-const previewSection =
-  document.getElementById("previewSection");
-
-const previewImage =
-  document.getElementById("previewImage");
-
-const previewTitle =
-  document.getElementById("previewTitle");
-
-const saveStatus =
-  document.getElementById("saveStatus");
-
-const queueList =
-  document.getElementById("queueList");
-
-const stageLabel =
-  document.getElementById("stageLabel");
-
-const cameraStatus =
-  document.getElementById("cameraStatus");
-
-const instructionTitle =
-  document.getElementById("instructionTitle");
-
-const instructionText =
-  document.getElementById("instructionText");
-
-const connectionDot =
-  document.getElementById("connectionDot");
-
-// ================================================
-// STATE
-// ================================================
+const cameraStatus = document.getElementById("cameraStatus");
+const connectionDot = document.getElementById("connectionDot");
+const instructionTitle = document.getElementById("instructionTitle");
+const instructionText = document.getElementById("instructionText");
 
 let cameraStream = null;
 let capturedImage = null;
 let isProcessing = false;
-let scanCount = 0;
+let isCameraStarting = false;
 
-// Hasil hanya disimpan sementara di memori halaman.
-const scanResults = [];
+let scanResults = [];
 
 // ================================================
-// START CAMERA
+// CAMERA
 // ================================================
 
 async function startCamera() {
+  if (isCameraStarting) return;
+
+  isCameraStarting = true;
+
   try {
     if (!navigator.mediaDevices ||
         !navigator.mediaDevices.getUserMedia) {
       throw new Error(
-        "Browser tidak mendukung kamera. Gunakan HTTPS."
+        "Kamera membutuhkan HTTPS atau localhost."
       );
     }
 
-    cameraStatus.textContent = "Mengaktifkan kamera...";
+    cameraStatus.textContent = "Menyiapkan kamera";
 
-    cameraStream = await navigator.mediaDevices
-      .getUserMedia({
-        video: {
-          facingMode: { ideal: "environment" },
-          width: { ideal: 1280 },
-          height: { ideal: 960 }
-        },
-        audio: false
-      });
+    cameraStream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: { ideal: "environment" },
+        width: { ideal: 1280 },
+        height: { ideal: 960 }
+      },
+      audio: false
+    });
 
     camera.srcObject = cameraStream;
+
+    await new Promise(function(resolve, reject) {
+      if (camera.readyState >= 2) {
+        resolve();
+        return;
+      }
+
+      camera.onloadedmetadata = function() {
+        resolve();
+      };
+
+      camera.onerror = function() {
+        reject(new Error("Video kamera gagal dimuat."));
+      };
+    });
 
     await camera.play();
 
     cameraStatus.textContent = "Kamera aktif";
-    connectionDot.style.background = "#22c55e";
+    connectionDot.classList.add("online");
+    connectionDot.classList.remove("offline");
 
-    showCameraMode();
+    instructionTitle.textContent = "Foto Payment Voucher";
+    instructionText.textContent =
+      "Posisikan nomor PV awalan 3400 di area kamera.";
 
   } catch (error) {
-    console.error("Camera error:", error);
+    console.error("Kamera:", error);
 
     cameraStatus.textContent = "Kamera gagal";
+    connectionDot.classList.add("offline");
 
     showStatus(
       "Kamera tidak dapat digunakan: " + error.message,
       "error"
     );
+
+  } finally {
+    isCameraStarting = false;
   }
 }
 
@@ -137,17 +124,16 @@ async function startCamera() {
 function capturePhoto() {
   if (isProcessing) return;
 
-  try {
-    if (!camera.videoWidth || !camera.videoHeight) {
-      throw new Error("Kamera belum siap.");
-    }
+  if (!camera.videoWidth || !camera.videoHeight) {
+    showStatus("Kamera belum siap. Coba lagi.", "error");
+    return;
+  }
 
+  try {
     canvas.width = camera.videoWidth;
     canvas.height = camera.videoHeight;
 
-    const context = canvas.getContext("2d");
-
-    context.drawImage(
+    ctx.drawImage(
       camera,
       0,
       0,
@@ -155,33 +141,21 @@ function capturePhoto() {
       canvas.height
     );
 
-    // Foto hanya disimpan sementara di memori.
-    // Tidak diunggah sebelum tombol proses ditekan.
-    capturedImage = canvas.toDataURL(
-      "image/jpeg",
-      0.70
-    );
+    capturedImage = canvas.toDataURL("image/jpeg", 0.80);
 
     previewImage.src = capturedImage;
-
-    previewTitle.textContent = "Preview Foto PV";
-    nextButton.textContent = "🔎 Baca Nomor PV";
 
     previewSection.classList.remove("hidden");
     cameraControls.classList.add("hidden");
 
     instructionTitle.textContent = "Periksa Foto PV";
     instructionText.textContent =
-      "Pastikan nomor PV terlihat jelas sebelum diproses.";
-
-    stageLabel.textContent = "📄 PREVIEW PV";
+      "Pastikan nomor 3400 terlihat jelas sebelum OCR.";
 
     hideStatus();
 
   } catch (error) {
-    console.error("Capture error:", error);
-
-    showStatus(error.message, "error");
+    showStatus("Gagal mengambil foto: " + error.message, "error");
   }
 }
 
@@ -192,29 +166,41 @@ function capturePhoto() {
 function retakePhoto() {
   if (isProcessing) return;
 
-  // Hapus referensi foto sebelumnya dari state aplikasi.
-  capturedImage = null;
-  previewImage.removeAttribute("src");
+  clearCapturedPhoto();
 
   previewSection.classList.add("hidden");
   cameraControls.classList.remove("hidden");
 
-  showCameraMode();
+  instructionTitle.textContent = "Foto Payment Voucher";
+  instructionText.textContent =
+    "Arahkan kamera ke nomor PV awalan 3400.";
+
   hideStatus();
 }
 
 // ================================================
-// SEND PHOTO TO OCR BACKEND
+// CLEAR TEMPORARY PHOTO
+// ================================================
+
+function clearCapturedPhoto() {
+  capturedImage = null;
+  previewImage.removeAttribute("src");
+
+  // Bersihkan canvas setelah proses foto selesai.
+  canvas.width = 1;
+  canvas.height = 1;
+}
+
+// ================================================
+// SEND OCR REQUEST
 // ================================================
 
 async function sendOCR(image) {
   const response = await fetch(WEBAPP_URL, {
     method: "POST",
-
     headers: {
       "Content-Type": "text/plain;charset=utf-8"
     },
-
     body: JSON.stringify({
       image: image,
       mode: "number"
@@ -236,22 +222,23 @@ async function processPV() {
   if (isProcessing || !capturedImage) return;
 
   isProcessing = true;
-  nextButton.disabled = true;
-  retakeButton.disabled = true;
 
-  nextButton.textContent = "⏳ Memproses...";
+  captureButton.disabled = true;
+  retakeButton.disabled = true;
+  nextButton.disabled = true;
+
+  nextButton.textContent = "Memproses OCR...";
 
   showStatus(
-    "Sedang membaca nomor PV melalui OCR...",
+    "Sedang membaca nomor Payment Voucher...",
     "loading"
   );
 
-  updateCameraStatus("Memproses OCR...");
-
-  const imageToProcess = capturedImage;
+  cameraStatus.textContent = "Memproses";
 
   try {
-    const result = await sendOCR(imageToProcess);
+    // Kirim foto hanya untuk diproses OCR.
+    const result = await sendOCR(capturedImage);
 
     if (!result || !result.success || !result.nomor) {
       throw new Error(
@@ -261,93 +248,97 @@ async function processPV() {
       );
     }
 
-    // Normalisasi hasil agar hanya berisi angka.
     const nomor = String(result.nomor).replace(/\D/g, "");
 
-    // Validasi tambahan di frontend.
-    if (!nomor.startsWith(PV_PREFIX) ||
-        nomor.length < 8) {
+    // Validasi awalan 3400.
+    if (!nomor.startsWith(PV_PREFIX) || nomor.length < 8) {
       throw new Error(
-        "Hasil OCR bukan nomor PV awalan 34 yang valid."
+        "Nomor tidak sesuai awalan PV 3400."
       );
     }
 
-    scanCount++;
-
-    const item = {
-      id: scanCount,
+    // Hasil disimpan hanya dalam memori halaman.
+    scanResults.unshift({
       nomor: nomor,
-      status: "Berhasil"
-    };
-
-    scanResults.unshift(item);
+      waktu: new Date().toLocaleTimeString("id-ID", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+      })
+    });
 
     renderQueue();
 
+    latestNumber.textContent = nomor;
+    resultSection.classList.remove("hidden");
+
     showStatus(
-      "✅ Nomor PV berhasil dibaca: " + nomor,
+      "Berhasil membaca PV: " + nomor,
       "success"
     );
 
-    // Hapus foto dari state setelah selesai diproses.
-    capturedImage = null;
-    previewImage.removeAttribute("src");
+    instructionTitle.textContent = "PV Berhasil Dibaca";
+    instructionText.textContent =
+      "Kamu dapat langsung memfoto Payment Voucher berikutnya.";
+
+    clearCapturedPhoto();
 
     previewSection.classList.add("hidden");
     cameraControls.classList.remove("hidden");
 
-    showCameraMode();
-
-    instructionTitle.textContent = "PV Berhasil Dibaca";
-    instructionText.textContent =
-      "Nomor " + nomor +
-      " berhasil dibaca. Foto PV berikutnya bisa langsung diambil.";
-
-    stageLabel.textContent = "✅ PV TERBACA";
+    cameraStatus.textContent = "Kamera aktif";
 
     beep();
     vibrate();
 
   } catch (error) {
-    console.error("OCR error:", error);
+    console.error("OCR:", error);
 
     showStatus(
-      "❌ " + error.message +
-      " Silakan ulangi foto atau coba lagi.",
+      "Gagal membaca PV: " + error.message +
+      " Kamu dapat mencoba OCR kembali atau mengulang foto.",
       "error"
     );
 
-    // Preview tetap tampil supaya bisa dicoba ulang.
+    // Foto tetap tersedia agar OCR dapat dicoba ulang.
     nextButton.textContent = "🔄 Coba OCR Lagi";
 
   } finally {
     isProcessing = false;
-    nextButton.disabled = false;
-    retakeButton.disabled = false;
 
-    if (!capturedImage) {
+    captureButton.disabled = false;
+    retakeButton.disabled = false;
+    nextButton.disabled = false;
+
+    if (capturedImage) {
+      nextButton.textContent = "🔎 Baca Nomor PV";
+    } else {
       nextButton.textContent = "🔎 Baca Nomor PV";
     }
 
-    updateCameraStatus("Kamera aktif");
+    cameraStatus.textContent = "Kamera aktif";
   }
 }
 
 // ================================================
-// QUEUE DISPLAY
+// DISPLAY QUEUE
 // ================================================
 
 function renderQueue() {
-  if (!scanResults.length) {
-    queueList.innerHTML =
-      '<div class="empty-queue">Belum ada scan.</div>';
+  scanCounter.textContent = scanResults.length + " PV";
 
+  queueList.replaceChildren();
+
+  if (scanResults.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "empty-queue";
+    empty.textContent = "Belum ada PV yang dipindai.";
+
+    queueList.appendChild(empty);
     return;
   }
 
-  queueList.innerHTML = "";
-
-  scanResults.forEach(function(item) {
+  scanResults.forEach(function(item, index) {
     const row = document.createElement("div");
     row.className = "queue-item";
 
@@ -359,22 +350,109 @@ function renderQueue() {
     number.textContent = item.nomor;
 
     const status = document.createElement("span");
-    status.className = "queue-status done";
+    status.className = "queue-status";
     status.textContent = "Berhasil";
 
-    top.appendChild(number);
-    top.appendChild(status);
+    top.append(number, status);
 
     const detail = document.createElement("div");
     detail.className = "queue-detail";
-    detail.textContent = "Scan #" + item.id + " · Nomor PV";
+    detail.textContent =
+      "Scan #" + (scanResults.length - index) +
+      " · " + item.waktu;
 
-    row.appendChild(top);
-    row.appendChild(detail);
+    const copyButton = document.createElement("button");
+    copyButton.className = "button secondary";
+    copyButton.style.marginTop = "10px";
+    copyButton.style.width = "100%";
+    copyButton.textContent = "Salin Nomor";
 
+    copyButton.addEventListener("click", function() {
+      copyText(item.nomor);
+    });
+
+    row.append(top, detail, copyButton);
     queueList.appendChild(row);
   });
 }
+
+// ================================================
+// COPY
+// ================================================
+
+async function copyText(text) {
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+    } else {
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      textarea.style.position = "fixed";
+      textarea.style.opacity = "0";
+
+      document.body.appendChild(textarea);
+      textarea.select();
+
+      const copied = document.execCommand("copy");
+      textarea.remove();
+
+      if (!copied) {
+        throw new Error("Salin otomatis tidak tersedia.");
+      }
+    }
+
+    showStatus("Nomor berhasil disalin.", "success");
+
+  } catch (error) {
+    showStatus(
+      "Tidak bisa menyalin otomatis. Nomor: " + text,
+      "error"
+    );
+  }
+}
+
+copyLatestButton.addEventListener("click", function() {
+  if (scanResults.length) {
+    copyText(scanResults[0].nomor);
+  }
+});
+
+copyAllButton.addEventListener("click", function() {
+  if (!scanResults.length) {
+    showStatus("Belum ada nomor PV.", "error");
+    return;
+  }
+
+  const allNumbers = scanResults
+    .map(function(item) {
+      return item.nomor;
+    })
+    .join("\n");
+
+  copyText(allNumbers);
+});
+
+// ================================================
+// CLEAR TEMPORARY RESULTS
+// ================================================
+
+clearButton.addEventListener("click", function() {
+  if (!scanResults.length) return;
+
+  const confirmed = window.confirm(
+    "Hapus semua nomor PV dari daftar sementara?"
+  );
+
+  if (!confirmed) return;
+
+  scanResults = [];
+  renderQueue();
+
+  latestNumber.textContent = "—";
+  resultSection.classList.add("hidden");
+
+  showStatus("Daftar sementara telah dihapus.", "success");
+});
 
 // ================================================
 // STATUS
@@ -390,21 +468,8 @@ function hideStatus() {
   saveStatus.className = "save-status hidden";
 }
 
-function updateCameraStatus(message) {
-  cameraStatus.textContent = message;
-}
-
-function showCameraMode() {
-  stageLabel.textContent = "📄 FOTO PV";
-  cameraStatus.textContent = "Kamera aktif";
-
-  instructionTitle.textContent = "Foto Payment Voucher";
-  instructionText.textContent =
-    "Arahkan kamera ke nomor PV yang diawali 34, lalu tekan tombol kamera.";
-}
-
 // ================================================
-// BEEP
+// SOUND AND VIBRATION
 // ================================================
 
 function beep() {
@@ -414,32 +479,27 @@ function beep() {
 
     if (!AudioContext) return;
 
-    const audioContext = new AudioContext();
-    const oscillator = audioContext.createOscillator();
-    const gain = audioContext.createGain();
+    const audio = new AudioContext();
+    const oscillator = audio.createOscillator();
+    const gain = audio.createGain();
 
-    oscillator.frequency.value = 900;
-    oscillator.type = "sine";
+    oscillator.frequency.value = 850;
     gain.gain.value = 0.12;
 
     oscillator.connect(gain);
-    gain.connect(audioContext.destination);
+    gain.connect(audio.destination);
 
     oscillator.start();
 
     setTimeout(function() {
       oscillator.stop();
-      audioContext.close();
+      audio.close();
     }, 120);
 
   } catch (error) {
     console.log("Audio tidak tersedia.");
   }
 }
-
-// ================================================
-// VIBRATION
-// ================================================
 
 function vibrate() {
   if (navigator.vibrate) {
@@ -452,25 +512,22 @@ function vibrate() {
 // ================================================
 
 captureButton.addEventListener("click", capturePhoto);
-
 retakeButton.addEventListener("click", retakePhoto);
-
 nextButton.addEventListener("click", processPV);
 
 // ================================================
-// INITIALIZE
+// START AND CLEANUP
 // ================================================
 
 renderQueue();
 startCamera();
 
-// Hentikan kamera ketika halaman ditutup atau ditinggalkan.
 window.addEventListener("pagehide", function() {
+  clearCapturedPhoto();
+
   if (cameraStream) {
     cameraStream.getTracks().forEach(function(track) {
       track.stop();
     });
   }
-
-  capturedImage = null;
 });
